@@ -1,3 +1,5 @@
+-- The code below is obtained from https://github.com/torch/nngraph
+
 require 'nn'
 require 'nngraph'
 
@@ -12,4 +14,4 @@ mlp:updateGradInput(x, dx)
 mlp:accGradParameters(x, dx)
 
 -- draw graph (the forward graph, '.fg')
-graph.dot(mlp.fg, 'MLP', 'outputBasename')
+graph.dot(mlp.fg, 'MLP', 'testNNGraph')

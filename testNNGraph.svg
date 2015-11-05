@@ -11,7 +11,7 @@
 <polygon fill="white" stroke="none" points="-4,4 -4,-852 264,-852 264,4 -4,4"/>
 <!-- n1 -->
 <g id="node1" class="node"><title>n1</title>
-<g id="a_node1"><a xlink:title="[testNNGraph.lua]:5">
+<g id="a_node1"><a xlink:title="[testNNGraph.lua]:7">
 <ellipse fill="none" stroke="black" cx="130" cy="-160" rx="125.237" ry="48.1667"/>
 <text text-anchor="middle" x="130" y="-178.8" font-family="Times,serif" font-size="14.00">Node1</text>
 <text text-anchor="start" x="49.5" y="-163.8" font-family="Times,serif" font-size="14.00">input = {Tensor[10]}</text>
@@ -37,7 +37,7 @@
 </g>
 <!-- n3 -->
 <g id="node3" class="node"><title>n3</title>
-<g id="a_node3"><a xlink:title="[testNNGraph.lua]:5">
+<g id="a_node3"><a xlink:title="[testNNGraph.lua]:7">
 <ellipse fill="none" stroke="black" cx="130" cy="-292" rx="120.373" ry="48.1667"/>
 <text text-anchor="middle" x="130" y="-310.8" font-family="Times,serif" font-size="14.00">Node3</text>
 <text text-anchor="start" x="52.5" y="-295.8" font-family="Times,serif" font-size="14.00">input = {Tensor[10]}</text>
@@ -53,7 +53,7 @@
 </g>
 <!-- n4 -->
 <g id="node4" class="node"><title>n4</title>
-<g id="a_node4"><a xlink:title="[testNNGraph.lua]:5">
+<g id="a_node4"><a xlink:title="[testNNGraph.lua]:7">
 <ellipse fill="none" stroke="black" cx="130" cy="-424" rx="130.162" ry="48.1667"/>
 <text text-anchor="middle" x="130" y="-442.8" font-family="Times,serif" font-size="14.00">Node4</text>
 <text text-anchor="start" x="46" y="-427.8" font-family="Times,serif" font-size="14.00">input = {Tensor[10]}</text>
@@ -69,7 +69,7 @@
 </g>
 <!-- n5 -->
 <g id="node5" class="node"><title>n5</title>
-<g id="a_node5"><a xlink:title="[testNNGraph.lua]:5">
+<g id="a_node5"><a xlink:title="[testNNGraph.lua]:7">
 <ellipse fill="none" stroke="black" cx="130" cy="-556" rx="120.373" ry="48.1667"/>
 <text text-anchor="middle" x="130" y="-574.8" font-family="Times,serif" font-size="14.00">Node5</text>
 <text text-anchor="start" x="52.5" y="-559.8" font-family="Times,serif" font-size="14.00">input = {Tensor[10]}</text>
@@ -85,7 +85,7 @@
 </g>
 <!-- n6 -->
 <g id="node6" class="node"><title>n6</title>
-<g id="a_node6"><a xlink:title="[testNNGraph.lua]:4">
+<g id="a_node6"><a xlink:title="[testNNGraph.lua]:6">
 <ellipse fill="none" stroke="black" cx="130" cy="-688" rx="130.162" ry="48.1667"/>
 <text text-anchor="middle" x="130" y="-706.8" font-family="Times,serif" font-size="14.00">Node6</text>
 <text text-anchor="start" x="46" y="-691.8" font-family="Times,serif" font-size="14.00">input = {Tensor[20]}</text>

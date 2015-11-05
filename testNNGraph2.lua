@@ -1,3 +1,5 @@
+-- The code below is obtained from https://github.com/torch/nngraph
+
 require 'nn'
 require 'nngraph'
 
@@ -15,4 +17,4 @@ x2 = torch.rand(10)
 
 gmod:updateOutput({x1, x2})
 gmod:updateGradInput({x1, x2}, {torch.rand(1), torch.rand(1)})
-graph.dot(gmod.fg, 'Big MLP', 'Big MLP')
+graph.dot(gmod.fg, 'Big MLP', 'testNNGraph2')
