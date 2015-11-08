@@ -1,0 +1,29 @@
+digraph G {
+	graph [bb="0,0,260,324"];
+	node [label="\N",
+		shape=oval
+	];
+	n1	 [height=0.74639,
+		label="Node1\nmodule = nn.Linear(10 -> 1)",
+		pos="130,117",
+		tooltip="[nngraph_sample.lua]:86",
+		width=3.4744];
+	n2	 [height=0.74639,
+		label="Node2\ninput = {}",
+		pos="130,27",
+		tooltip="[[C]]:-1",
+		width=1.449];
+	n1 -> n2	 [pos="e,130,54.046 130,90.073 130,81.999 130,72.943 130,64.296"];
+	n3	 [height=0.74639,
+		label="Node3\nmodule = nn.Linear(20 -> 10)",
+		pos="130,207",
+		tooltip="[nngraph_sample.lua]:85",
+		width=3.6126];
+	n3 -> n1	 [pos="e,130,144.05 130,180.07 130,172 130,162.94 130,154.3"];
+	n4	 [height=0.74639,
+		label="Node4\ninput = {}",
+		pos="130,297",
+		tooltip="[[C]]:-1",
+		width=1.449];
+	n4 -> n3	 [pos="e,130,234.05 130,270.07 130,262 130,252.94 130,244.3"];
+}

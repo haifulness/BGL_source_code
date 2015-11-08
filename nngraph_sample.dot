@@ -1,0 +1,29 @@
+digraph G {
+	graph [bb="0,0,270,452"];
+	node [label="\N",
+		shape=oval
+	];
+	n1	 [height=1.3356,
+		label="Node1\ninput = {Tensor[25]}\lmodule = nn.Linear(25 -> 1)\lgradOutput = {Tensor[1]}",
+		pos="135,160",
+		tooltip="[nngraph_sample.lua]:85",
+		width=3.4744];
+	n2	 [height=1.041,
+		label="Node2\ninput = {Tensor[1]}\lgradOutput = {Tensor[1]}",
+		pos="135,38",
+		tooltip="[[C]]:-1",
+		width=3.2079];
+	n1 -> n2	 [pos="e,135,75.722 135,111.57 135,103.1 135,94.269 135,85.81"];
+	n3	 [height=1.3356,
+		label="Node3\ninput = {Tensor[615]}\lmodule = nn.Linear(615 -> 25)\lgradOutput = {Tensor[25]}",
+		pos="135,292",
+		tooltip="[nngraph_sample.lua]:84",
+		width=3.7508];
+	n3 -> n1	 [pos="e,135,208.48 135,243.7 135,235.54 135,226.99 135,218.6"];
+	n4	 [height=1.041,
+		label="Node4\ninput = {Tensor[615]}\lgradOutput = {Tensor[615]}",
+		pos="135,414",
+		tooltip="[[C]]:-1",
+		width=3.4842];
+	n4 -> n3	 [pos="e,135,340.5 135,376.34 135,368.22 135,359.42 135,350.68"];
+}
