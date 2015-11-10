@@ -103,7 +103,7 @@ print(simpleNN)
 -- Convert the data array to a tensor, put it into the net, 
 -- apply feedforward on it, and print the output
 print("\nOutput")
-print(simpleNN:forward(torch.Tensor(glucose)))
+--print(simpleNN:forward(torch.Tensor(glucose)))
 
 
 
@@ -139,6 +139,7 @@ graph.dot(simpleNN.fg, 'SimpleNN', 'SimpleNN')
 -- I'll look at them more closely
 --
 -- ====================
+--[[
 local NewClass, Parent = torch.class('nn.NewClass', 'nn.Module')
 
 function NewClass:__init()
@@ -156,3 +157,4 @@ end
 
 function NewClass:reset()
 end
+]]

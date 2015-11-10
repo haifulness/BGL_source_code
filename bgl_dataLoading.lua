@@ -29,7 +29,8 @@ function loadFile(fileLocation)
     local file = io.open(fileLocation)
 
     -- 8 aspects to extract from each line of the file
-    local date, time, glucose, shortActingInsulin, longActingInsulin, food, exercise, stress = { }, { }, { }, { }, { }, { }, { }, { }
+    local date, time, glucose, shortActingInsulin, longActingInsulin, food, exercise, stress 
+        = { }, { }, { }, { }, { }, { }, { }, { }
 
     if file then
     	local lineCounter = 1
