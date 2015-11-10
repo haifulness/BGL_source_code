@@ -51,7 +51,7 @@ end
 -- Load data from file
 --
 -- ====================
-local path = "../Datasets/Peter Kok - Real data for predicting blood glucose levels of diabetics/data.txt"
+local path = "../../Datasets/Peter Kok - Real data for predicting blood glucose levels of diabetics/data.txt"
 local file = io.open(path)
 local date, time, glucose, shortActingInsulin, longActingInsulin, mealCarbohydrates, exercise, stress = { }, { }, { }, { }, { }, { }, { }, { }
 

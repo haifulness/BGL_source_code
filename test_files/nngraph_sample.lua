@@ -1,9 +1,10 @@
---
--- Hai Tran
--- Nov 08, 2015
---
--- Test nngraph
--- Output: a *.svg file in the same folder
+--[[
+-- Author: Hai Tran
+-- Date: Nov 08, 2015
+-- Filename: bgl_dataLoading.lua
+-- Description: This file tests the use of nngraph. 
+-- Output: file "nngraph_sample.svg" in the same folder
+--]]
 
 
 
@@ -50,7 +51,7 @@ end
 -- Load data from file
 --
 -- ====================
-local path = "../Datasets/Peter Kok - Real data for predicting blood glucose levels of diabetics/data.txt"
+local path = "../../Datasets/Peter Kok - Real data for predicting blood glucose levels of diabetics/data.txt"
 local file = io.open(path)
 local date, time, glucose, shortActingInsulin, longActingInsulin, mealCarbohydrates, exercise, stress = { }, { }, { }, { }, { }, { }, { }, { }
 

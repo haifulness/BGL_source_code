@@ -11,7 +11,7 @@
 <polygon fill="white" stroke="none" points="-4,4 -4,-456 274,-456 274,4 -4,4"/>
 <!-- n1 -->
 <g id="node1" class="node"><title>n1</title>
-<g id="a_node1"><a xlink:title="[nngraph_sample.lua]:85">
+<g id="a_node1"><a xlink:title="[nngraph_sample.lua]:86">
 <ellipse fill="none" stroke="black" cx="135" cy="-160" rx="125.237" ry="48.1667"/>
 <text text-anchor="middle" x="135" y="-178.8" font-family="Times,serif" font-size="14.00">Node1</text>
 <text text-anchor="start" x="54.5" y="-163.8" font-family="Times,serif" font-size="14.00">input = {Tensor[25]}</text>
@@ -37,7 +37,7 @@
 </g>
 <!-- n3 -->
 <g id="node3" class="node"><title>n3</title>
-<g id="a_node3"><a xlink:title="[nngraph_sample.lua]:84">
+<g id="a_node3"><a xlink:title="[nngraph_sample.lua]:85">
 <ellipse fill="none" stroke="black" cx="135" cy="-292" rx="135.086" ry="48.1667"/>
 <text text-anchor="middle" x="135" y="-310.8" font-family="Times,serif" font-size="14.00">Node3</text>
 <text text-anchor="start" x="47.5" y="-295.8" font-family="Times,serif" font-size="14.00">input = {Tensor[615]}</text>
