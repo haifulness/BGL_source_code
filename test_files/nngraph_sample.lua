@@ -95,3 +95,7 @@ sampleNN:accGradParameters(x, dx)
 
 graph.dot(sampleNN.fg, 'nngraph_sample', 'nngraph_sample')
 
+-- So, the weakness of nngraph:
+--   + We don't really draw an existing net. Basically, we have to redo the steps of building a net using gModule.
+--   + What we actually draw is just its wrapper. The image only displays how many nodes each layer
+--     has. We cannot see the weights of each layer.

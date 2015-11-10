@@ -32,13 +32,18 @@ function loadFile(fileLocation)
     local date, time, glucose, shortActingInsulin, longActingInsulin, food, exercise, stress = { }, { }, { }, { }, { }, { }, { }, { }
 
     if file then
-    	local i = 0
+    	local lineCounter = 1
 
     	-- Iterate through every line of the data file and insert values into the arrays
     	for line in file:lines() do
-    		date[i], time[i], glucose[i], shortActingInsulin[i], longActingInsulin[i], food[i], exercise[i], stress[i] = unpack(line:split(";"))
-    		i = i + 1
+            -- Only load even lines, so we don't have any empty value
+            if lineCounter % 2 == 0 then
+                local i = lineCounter / 2
+        		date[i], time[i], glucose[i], shortActingInsulin[i], longActingInsulin[i], food[i], exercise[i], stress[i] = unpack(line:split(";"))
+    		end
+            lineCounter = lineCounter + 1
     	end
+        
     else
     	print("Cannot open file") 
     end
