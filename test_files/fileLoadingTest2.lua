@@ -5,6 +5,7 @@
 -- Descriptiion: This file tests bgl_dataLoading2.lua
 --]]
 
+require 'torch'
 require("../bgl_dataLoading2.lua")
 local path = "../../Datasets/Peter Kok - Real data for predicting blood glucose levels of diabetics/data.txt"
 local 
@@ -46,4 +47,17 @@ local
 
 	= loadFile(path)
 
-print(morning_time[0])
+--print(type(morning_glucose[1]))
+
+local morning_glucose_storage = torch.Storage(30)
+--print(type(morning_glucose_storage))
+
+for i = 1, 30 do
+    morning_glucose_storage[i] = tonumber(morning_glucose[i])
+end
+
+--print(morning_glucose_storage)
+
+local morning_glucose_tensor = torch.Tensor(morning_glucose_storage)
+print(morning_glucose_tensor)
+

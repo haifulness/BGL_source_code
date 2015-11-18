@@ -4,6 +4,7 @@
 -- Filename: criterion.lua
 -- Descriptiion: This file is a practice on criterion.
 --]]
+require 'torch'
 require 'nn'
 require '../bgl_dataLoading.lua'
 
@@ -30,8 +31,17 @@ criterion = nn.MSECriterion()
 
 -- for i = 1, 30 do
 i = 3
-input = torch.Tensor({glucose[4*i], shortActingInsulin[4*i], food[4*i], exercise[4*i]})
-output = torch.Tensor({glucose[4*i+1]})
+input_storage = torch.Storage(4)
+input_storage[1] = glucose[4*i]
+input_storage[2] = shortActingInsulin[4*i]
+input_storage[3] = food[4*i]
+input_storage[4] = exercise[4*i]
+input = torch.Tensor(input_storage)
+
+output_storage = torch.Storage(1)
+output_storage[1] = glucose[4*i+1]
+output = torch.Tensor(output_storage)
+
 -- end
 
 print('glucose = ' .. glucose[4*i])
@@ -43,4 +53,5 @@ for j = 1, 1000 do
 	gradientUpgrade(net, input, output, criterion, 0.01)
 end
 
-print('prediction for input = ' .. net:forward(input)[1] .. ' expected value ' .. output[1])
+print(net:forward(input))
+--print('prediction for input = ' .. net:forward(input) .. ' expected value ' .. output[1])
