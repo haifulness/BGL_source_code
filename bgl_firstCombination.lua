@@ -6,9 +6,13 @@
 ]]
 
 require 'torch'
-require("../bgl_dataLoading2.lua")
+require 'nn'
+require 'gnuplot'
+require("bgl_dataLoading2.lua")
+require("bgl_generateSets.lua")
 
-local path = "../../Datasets/Peter Kok - Real data for predicting blood glucose levels of diabetics/data.txt"
+-- Load data
+local path = "../Datasets/Peter Kok - Real data for predicting blood glucose levels of diabetics/data.txt"
 local 
 	morning_date, 
     morning_time, 
@@ -49,18 +53,20 @@ local
 	= loadFile(path)
 
 
-
-function gradientUpgrade(model, learningRate, criterion, input, output)
-    local prediction     = model:forward(input)
-    local err            = criterion:forward(prediction, output)
-    local gradientOutput = criterion:backward(prediction, output)
-
-    model:zeroGradParameters()
-    model:backward(input, gradientOutput)
-    model:updateParameters(learningRate)
+function calculate(model, input, output)
+    local ret = model:forward(input)
+    return ret
 end
 
+function gradientUpgrade(model, input, output, criterion, learningRate)
+    local prediction  = model:forward(input)
+    local err         = criterion:forward(prediction, output)
+    local gradOutputs = criterion:backward(prediction, output)
 
+    model:zeroGradParameters()
+    model:backward(input, gradOutputs)
+    model:updateParameters(learningRate)
+end
 
 --[[
 -- The first combination consists of:
@@ -70,8 +76,51 @@ end
 --   + Exercise (during the interval)
 ]]
 
-local input_table
+local train, test, validate = {}, {}, {}
 
-for i = 1, 69 do
-    input_table[i]
+NUM_DAY = #morning_date
+
+-- Neural net model
+-- 4 inputs
+-- 1 hidden layer with 10 nodes
+-- 1 output
+local SIZE_INPUT = 4
+local SIZE_HIDDEN_LAYER = 10
+local SIZE_OUTPUT = 1
+local net = nn.Sequential()
+--net:add(nn.Linear(SIZE_INPUT, SIZE_HIDDEN_LAYER))
+--net:add(nn.Linear(SIZE_HIDDEN_LAYER, SIZE_OUTPUT))
+local module_01 = nn.Linear(SIZE_INPUT, SIZE_OUTPUT)
+
+net:add(module_01)
+criterion = nn.MarginCriterion(1)
+
+-- Divide the dataset
+train, test, validate = generateSets(NUM_DAY - 1, 60, 20, 20)
+
+for i = 1, NUM_DAY - 1 do
+    -- Build the input
+    -- I'll try with the morning set first
+    local input_storage = torch.Storage(4)
+    input_storage[1]    = morning_glucose[i]
+    input_storage[2]    = morning_SAI[i]
+    input_storage[3]    = morning_food[i]
+    input_storage[4]    = morning_exercise[i]
+
+    -- Convert input to a Tensor
+    local input  = torch.Tensor(input_storage)
+    local output = torch.Tensor({1})
+
+    -- Train
+    --output[1] = calculate(net, input, output)
+    gradientUpgrade(net, input, output, criterion, 0.01)
+
+    print('\nDay #' .. i)
+    print('Prediction: ' .. output[1])
+    print('Real value: ' .. morning_glucose[i+1])
+
+    -- Test
+
+    -- Validate
 end
+
