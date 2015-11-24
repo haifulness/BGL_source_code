@@ -62,7 +62,7 @@ for i = 1, #morning_date do
 end
 data = torch.Tensor(data_storage)
 
-gnuplot.pngfigure('morning_glucose.png')
+gnuplot.pngfigure('graph/glucose_morning.png')
 gnuplot.title('Morning Glucose')
 gnuplot.xlabel('Day')
 gnuplot.ylabel('Glucose Level')
@@ -78,7 +78,7 @@ for i = 1, #afternoon_date do
 end
 data = torch.Tensor(data_storage)
 
-gnuplot.pngfigure('afternoon_glucose.png')
+gnuplot.pngfigure('graph/glucose_afternoon.png')
 gnuplot.title('Afternoon Glucose')
 gnuplot.xlabel('Day')
 gnuplot.ylabel('Glucose Level')
@@ -94,7 +94,7 @@ for i = 1, #evening_date do
 end
 data = torch.Tensor(data_storage)
 
-gnuplot.pngfigure('evening_glucose.png')
+gnuplot.pngfigure('graph/glucose_evening.png')
 gnuplot.title('Evening Glucose')
 gnuplot.xlabel('Day')
 gnuplot.ylabel('Glucose Level')
@@ -110,7 +110,7 @@ for i = 1, #night_date do
 end
 data = torch.Tensor(data_storage)
 
-gnuplot.pngfigure('night_glucose.png')
+gnuplot.pngfigure('graph/glucose_night.png')
 gnuplot.title('Night Glucose')
 gnuplot.xlabel('Day')
 gnuplot.ylabel('Glucose Level')
@@ -138,7 +138,7 @@ afternoon = torch.Tensor(afternoon_storage)
 evening   = torch.Tensor(evening_storage)
 night     = torch.Tensor(night_storage)
 
-gnuplot.pngfigure('glucose.png')
+gnuplot.pngfigure('graph/glucose.png')
 gnuplot.title('Glucose Data')
 gnuplot.xlabel('Day')
 gnuplot.ylabel('Glucose Level')

@@ -16,8 +16,6 @@ require 'gnuplot'
 require("bgl_dataLoading2.lua")
 require("bgl_generateSets.lua")
 
-gnuplot.setterm('x11')
-
 -- Load data
 local path = "../Datasets/Peter Kok - Real data for predicting blood glucose levels of diabetics/data.txt"
 local 
@@ -59,14 +57,16 @@ local
 
 	= loadFile(path)
 
+
 -- All the above tables have the same size, so it is better
 -- to have a constant to represent it.
 NUM_DAY = #morning_date
 
+
 -- Create a tensor for expected values
-local expectation_storage = torch.Storage(NUM_DAY-1)
-for i = 1, NUM_DAY-1 do
-    expectation_storage[i] = morning_glucose[i+1]
+local expectation_storage = torch.Storage(NUM_DAY - 1)
+for i = 1, NUM_DAY - 1 do
+    expectation_storage[i] = morning_glucose[i + 1]
 end
 local expectation = torch.Tensor(expectation_storage)
 
@@ -99,18 +99,28 @@ local SIZE_INPUT = 4
 local SIZE_HIDDEN_LAYER = 10
 local SIZE_OUTPUT = 1
 local net = nn.Sequential()
---net:add(nn.Linear(SIZE_INPUT, SIZE_HIDDEN_LAYER))
---net:add(nn.Linear(SIZE_HIDDEN_LAYER, SIZE_OUTPUT))
+
+-- I can customize the weights and bias value of each module (layer).
+-- If no value is modified, all the weights are randomly generated.
 local module_01 = nn.Linear(SIZE_INPUT, SIZE_OUTPUT)
+-- module_01.weight = ...
+-- module_01.bias = ...
+
+-- Add the layer(s) to the net.
 net:add(module_01)
 
--- Criterion for back propagation
-criterion = nn.MarginCriterion(1)
+
+-- For back propagation
+criterion = nn.MSECriterion(1)
+
 
 -- Divide the dataset
-local train, test, validate = generateSets(NUM_DAY - 1, 60, 20, 20)
-local input  = torch.Tensor(NUM_DAY, SIZE_INPUT)
-local output = torch.Tensor(NUM_DAY, SIZE_OUTPUT)
+local train, test, validation = generateSets(NUM_DAY - 1, 60, 20, 20)
+
+-- Input and output of the neural net
+local input  = torch.Tensor(NUM_DAY-1, SIZE_INPUT)
+local output = torch.Tensor(NUM_DAY-1, SIZE_OUTPUT)
+
 
 -- Apply the training function for each day (except the last day)
 for i = 1, NUM_DAY - 1 do
@@ -130,7 +140,7 @@ for i = 1, NUM_DAY - 1 do
 
     print('\nDay #' .. i)
     print('Prediction: ' .. output[i][1])
-    print('Expectation: ' .. morning_glucose[i+1])
+    print('Expectation: ' .. expectation[i])
 
     -- Test process
     -- < CODE GOES HERE >
@@ -139,9 +149,19 @@ for i = 1, NUM_DAY - 1 do
     -- < CODE GOES HERE >
 end
 
+--[[
+for i = 1, 1000 do
+    gradientUpgrade(net, input, expectation, criterion, 0.01)
+end
+
+print('\nprediction = ' .. net:forward(input[12])[1])
+print('loss = ' .. criterion:forward(net:forward(input), expectation))
+]]--
+
 -- Plot
-gnuplot.pngfigure('firstCombination.png')
-gnuplot.title('First Combination')
+gnuplot.setterm('x11')
+gnuplot.pngfigure('graph/firstCombination.png')
+gnuplot.title('First Combination - Morning Values')
 gnuplot.xlabel('Day')
 gnuplot.ylabel('Glucose Level')
 gnuplot.plot({'Prediction', output}, {'Expectation', expectation})
