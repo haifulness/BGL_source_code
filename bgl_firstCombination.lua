@@ -3,6 +3,11 @@
 -- Date: Nov 21, 2015
 -- Filename: bgl_firstCombination.lua
 -- Descriptiion: Simulate the first combination that Peter Kok suggested.
+-- The first combination consists of:
+--   + Glucose level (at the start of the interval)
+--   + Short acting insulin (during the interval)
+--   + Food intake (during the interval)
+--   + Exercise (during the interval)
 ]]
 
 require 'torch'
@@ -54,12 +59,27 @@ local
 
 	= loadFile(path)
 
+-- All the above tables have the same size, so it is better
+-- to have a constant to represent it.
+NUM_DAY = #morning_date
 
+-- Create a tensor for expected values
+local expectation_storage = torch.Storage(NUM_DAY-1)
+for i = 1, NUM_DAY-1 do
+    expectation_storage[i] = morning_glucose[i+1]
+end
+local expectation = torch.Tensor(expectation_storage)
+
+
+-- Test the built-in function for neural nets.
 function calculate(model, input)
     local ret = model:forward(input)
     return ret
 end
 
+
+-- Feed forward + back propagation. Right now I'm not using this function
+-- because it requires too many params.
 function gradientUpgrade(model, input, output, criterion, learningRate)
     local prediction  = model:forward(input)
     local err         = criterion:forward(prediction, output)
@@ -70,15 +90,6 @@ function gradientUpgrade(model, input, output, criterion, learningRate)
     model:updateParameters(learningRate)
 end
 
---[[
--- The first combination consists of:
---   + Glucose level (at the start of the interval)
---   + Short acting insulin (during the interval)
---   + Food intake (during the interval)
---   + Exercise (during the interval)
-]]
-NUM_DAY = #morning_date
-local train, test, validate = {}, {}, {}
 
 -- Neural net model
 -- 4 inputs
@@ -93,16 +104,17 @@ local net = nn.Sequential()
 local module_01 = nn.Linear(SIZE_INPUT, SIZE_OUTPUT)
 net:add(module_01)
 
+-- Criterion for back propagation
 criterion = nn.MarginCriterion(1)
 
 -- Divide the dataset
-train, test, validate = generateSets(NUM_DAY - 1, 60, 20, 20)
+local train, test, validate = generateSets(NUM_DAY - 1, 60, 20, 20)
 local input  = torch.Tensor(NUM_DAY, SIZE_INPUT)
 local output = torch.Tensor(NUM_DAY, SIZE_OUTPUT)
 
+-- Apply the training function for each day (except the last day)
 for i = 1, NUM_DAY - 1 do
-    -- Build the input
-    -- I'll try with the morning set first
+    -- Build the input tensor (try the morning set first)
     local input_storage = torch.Storage(4)
     input_storage[1]    = morning_glucose[i]
     input_storage[2]    = morning_SAI[i]
@@ -111,9 +123,8 @@ for i = 1, NUM_DAY - 1 do
 
     -- Convert input to a Tensor
     input[i]  = torch.Tensor(input_storage)
-    --local output = torch.Tensor({1})
 
-    -- Train
+    -- Train process
     output[i] = calculate(net, input[i])
     --gradientUpgrade(net, input, output, criterion, 0.01)
 
@@ -121,24 +132,17 @@ for i = 1, NUM_DAY - 1 do
     print('Prediction: ' .. output[i][1])
     print('Expectation: ' .. morning_glucose[i+1])
 
-    -- Test
+    -- Test process
+    -- < CODE GOES HERE >
 
-    -- Validate
+    -- Validate process
+    -- < CODE GOES HERE >
 end
-
--- Create a tensor for expectation values
-local expectation_storage = torch.Storage(NUM_DAY-1)
-for i = 1, NUM_DAY-1 do
-    expectation_storage[i] = morning_glucose[i+1]
-end
-local expectation = torch.Tensor(expectation_storage)
 
 -- Plot
 gnuplot.pngfigure('firstCombination.png')
 gnuplot.title('First Combination')
 gnuplot.xlabel('Day')
 gnuplot.ylabel('Glucose Level')
-gnuplot.plot(
-    {'Prediction', output}, 
-    {'Expectation', expectation})
+gnuplot.plot({'Prediction', output}, {'Expectation', expectation})
 gnuplot.plotflush()
