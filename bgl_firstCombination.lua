@@ -11,6 +11,8 @@ require 'gnuplot'
 require("bgl_dataLoading2.lua")
 require("bgl_generateSets.lua")
 
+gnuplot.setterm('x11')
+
 -- Load data
 local path = "../Datasets/Peter Kok - Real data for predicting blood glucose levels of diabetics/data.txt"
 local 
@@ -53,7 +55,7 @@ local
 	= loadFile(path)
 
 
-function calculate(model, input, output)
+function calculate(model, input)
     local ret = model:forward(input)
     return ret
 end
@@ -75,10 +77,8 @@ end
 --   + Food intake (during the interval)
 --   + Exercise (during the interval)
 ]]
-
-local train, test, validate = {}, {}, {}
-
 NUM_DAY = #morning_date
+local train, test, validate = {}, {}, {}
 
 -- Neural net model
 -- 4 inputs
@@ -91,12 +91,14 @@ local net = nn.Sequential()
 --net:add(nn.Linear(SIZE_INPUT, SIZE_HIDDEN_LAYER))
 --net:add(nn.Linear(SIZE_HIDDEN_LAYER, SIZE_OUTPUT))
 local module_01 = nn.Linear(SIZE_INPUT, SIZE_OUTPUT)
-
 net:add(module_01)
+
 criterion = nn.MarginCriterion(1)
 
 -- Divide the dataset
 train, test, validate = generateSets(NUM_DAY - 1, 60, 20, 20)
+local input  = torch.Tensor(NUM_DAY, SIZE_INPUT)
+local output = torch.Tensor(NUM_DAY, SIZE_OUTPUT)
 
 for i = 1, NUM_DAY - 1 do
     -- Build the input
@@ -108,19 +110,35 @@ for i = 1, NUM_DAY - 1 do
     input_storage[4]    = morning_exercise[i]
 
     -- Convert input to a Tensor
-    local input  = torch.Tensor(input_storage)
-    local output = torch.Tensor({1})
+    input[i]  = torch.Tensor(input_storage)
+    --local output = torch.Tensor({1})
 
     -- Train
-    --output[1] = calculate(net, input, output)
-    gradientUpgrade(net, input, output, criterion, 0.01)
+    output[i] = calculate(net, input[i])
+    --gradientUpgrade(net, input, output, criterion, 0.01)
 
     print('\nDay #' .. i)
-    print('Prediction: ' .. output[1])
-    print('Real value: ' .. morning_glucose[i+1])
+    print('Prediction: ' .. output[i][1])
+    print('Expectation: ' .. morning_glucose[i+1])
 
     -- Test
 
     -- Validate
 end
 
+-- Create a tensor for expectation values
+local expectation_storage = torch.Storage(NUM_DAY-1)
+for i = 1, NUM_DAY-1 do
+    expectation_storage[i] = morning_glucose[i+1]
+end
+local expectation = torch.Tensor(expectation_storage)
+
+-- Plot
+gnuplot.pngfigure('firstCombination.png')
+gnuplot.title('First Combination')
+gnuplot.xlabel('Day')
+gnuplot.ylabel('Glucose Level')
+gnuplot.plot(
+    {'Prediction', output}, 
+    {'Expectation', expectation})
+gnuplot.plotflush()
