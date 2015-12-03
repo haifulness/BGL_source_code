@@ -1,7 +1,7 @@
 --[[
 -- Author: Hai Tran
--- Date: Nov 09, 2015
--- Filename: bgl_dataLoading.lua
+-- Date: Nov 10, 2015
+-- Filename: bgl_dataLoading2.lua
 -- Description: Load data from the given text file and store it in different arrays. This file has 2 functions:
 --   1. loadFile(path): Load data from a file given its location. Each line of the loaded file will then stored
 --      in different arrays representing 8 aspects of each interval of a day:
@@ -16,6 +16,10 @@
 --
 --   2. split(delimiter)
 --
+-- When we convert a Lua table to a tensor in Torch 7, we cannot pick which entry to be included. Therefore,
+-- with this file, I separate different intervals into different tables. Starting from 8 tables in total in 
+-- bgl_dataLoading.lua, we now have 32 tables, with 8 tables for each interval.
+-- 
 -- ]]
 
 -- ====================
@@ -25,23 +29,109 @@
 -- ====================
 
 function loadFile(fileLocation)
-
     local file = io.open(fileLocation)
 
     -- 8 aspects to extract from each line of the file
-    local date, time, glucose, shortActingInsulin, longActingInsulin, food, exercise, stress 
-        = { }, { }, { }, { }, { }, { }, { }, { }
+    local morning_date, 
+        morning_time, 
+        morning_glucose, 
+        morning_SAI,  -- short acting insulin 
+        morning_LAI,  -- long acting insulin
+        morning_food, 
+        morning_exercise, 
+        morning_stress,
+        ----
+        afternoon_date, 
+        afternoon_time, 
+        afternoon_glucose, 
+        afternoon_SAI,  -- short acting insulin 
+        afternoon_LAI,  -- long acting insulin 
+        afternoon_food, 
+        afternoon_exercise, 
+        afternoon_stress,
+        ----
+        evening_date, 
+        evening_time, 
+        evening_glucose, 
+        evening_SAI,  -- short acting insulin  
+        evening_LAI,  -- long acting insulin 
+        evening_food, 
+        evening_exercise, 
+        evening_stress,
+        ----
+        night_date, 
+        night_time, 
+        night_glucose, 
+        night_SAI,  -- short acting insulin  
+        night_LAI,  -- long acting insulin 
+        night_food, 
+        night_exercise, 
+        night_stress 
+
+        = { }, { }, { }, { }, { }, { }, { }, { },
+        { }, { }, { }, { }, { }, { }, { }, { },
+        { }, { }, { }, { }, { }, { }, { }, { },
+        { }, { }, { }, { }, { }, { }, { }, { }
 
     if file then
     	local lineCounter = 1
 
     	-- Iterate through every line of the data file and insert values into the arrays
     	for line in file:lines() do
-            -- Only load even lines, so we don't have any empty value
-            if lineCounter % 2 == 0 then
-                local i = lineCounter / 2
-        		date[i], time[i], glucose[i], shortActingInsulin[i], longActingInsulin[i], food[i], exercise[i], stress[i] = unpack(line:split(";"))
+
+            -- It's strange here. I always received an integer when I divide lineCounter by 2,
+            -- but in this case, I have to call math.ceil to round the division.
+            local i = math.ceil(lineCounter / 8)
+
+            if lineCounter % 8 == 2 then
+        		morning_date[i], 
+                morning_time[i], 
+                morning_glucose[i], 
+                morning_SAI[i], 
+                morning_LAI[i], 
+                morning_food[i], 
+                morning_exercise[i], 
+                morning_stress[i] 
+                = unpack(line:split(";"))
     		end
+
+            if lineCounter % 8 == 4 then
+                afternoon_date[i], 
+                afternoon_time[i], 
+                afternoon_glucose[i], 
+                afternoon_SAI[i], 
+                afternoon_LAI[i], 
+                afternoon_food[i], 
+                afternoon_exercise[i], 
+                afternoon_stress[i] 
+                = unpack(line:split(";"))
+            end
+
+            if lineCounter % 8 == 6 then
+                evening_date[i], 
+                evening_time[i], 
+                evening_glucose[i], 
+                evening_SAI[i], 
+                evening_LAI[i], 
+                evening_food[i], 
+                evening_exercise[i], 
+                evening_stress[i] 
+                = unpack(line:split(";"))
+            end
+
+            if lineCounter % 8 == 0 then
+                night_date[i], 
+                night_time[i], 
+                night_glucose[i], 
+                night_SAI[i], 
+                night_LAI[i], 
+                night_food[i], 
+                night_exercise[i], 
+                night_stress[i] 
+                = unpack(line:split(";"))
+            end
+
+            -- Go to the next line
             lineCounter = lineCounter + 1
     	end
         
@@ -50,7 +140,42 @@ function loadFile(fileLocation)
     end
 
     -- It's interesting that Lua can return multiple values like this. Very convenient.
-    return date, time, glucose, shortActingInsulin, longActingInsulin, food, exercise, stress
+    return 
+        morning_date, 
+        morning_time, 
+        morning_glucose, 
+        morning_SAI,  -- short acting insulin 
+        morning_LAI,  -- long acting insulin
+        morning_food, 
+        morning_exercise, 
+        morning_stress,
+        ----
+        afternoon_date, 
+        afternoon_time, 
+        afternoon_glucose, 
+        afternoon_SAI,  -- short acting insulin 
+        afternoon_LAI,  -- long acting insulin 
+        afternoon_food, 
+        afternoon_exercise, 
+        afternoon_stress,
+        ----
+        evening_date, 
+        evening_time, 
+        evening_glucose, 
+        evening_SAI,  -- short acting insulin  
+        evening_LAI,  -- long acting insulin 
+        evening_food, 
+        evening_exercise, 
+        evening_stress,
+        ----
+        night_date, 
+        night_time, 
+        night_glucose, 
+        night_SAI,  -- short acting insulin  
+        night_LAI,  -- long acting insulin 
+        night_food, 
+        night_exercise, 
+        night_stress 
 end
 
 

@@ -16,6 +16,7 @@ require 'gnuplot'
 require("bgl_dataLoading2.lua")
 require("bgl_generateSets.lua")
 
+
 -- Load data
 local path = "../Datasets/Peter Kok - Real data for predicting blood glucose levels of diabetics/data.txt"
 local 
@@ -24,7 +25,7 @@ local
     morning_glucose, 
     morning_SAI,  -- short acting insulin 
     morning_LAI,  -- long acting insulin
-    morning_food, 
+    morning_food,
     morning_exercise, 
     morning_stress,
     
@@ -63,32 +64,24 @@ local
 NUM_DAY = #morning_date
 
 
+-- Feed forward + back propagation. Right now I'm not using this function
+-- because it requires too many params.
+function gradientUpgrade(model, input, output, criterion, learningRate)
+    local prediction    = model:forward(input)
+    local err           = criterion:forward(prediction, output)
+    local gradCriterion = criterion:backward(prediction, output)
+
+    model:zeroGradParameters()
+    model:backward(input, gradCriterion)
+    model:updateParameters(learningRate)
+end
+
 -- Create a tensor for expected values
 local expectation_storage = torch.Storage(NUM_DAY - 1)
 for i = 1, NUM_DAY - 1 do
     expectation_storage[i] = morning_glucose[i + 1]
 end
 local expectation = torch.Tensor(expectation_storage)
-
-
--- Test the built-in function for neural nets.
-function calculate(model, input)
-    local ret = model:forward(input)
-    return ret
-end
-
-
--- Feed forward + back propagation. Right now I'm not using this function
--- because it requires too many params.
-function gradientUpgrade(model, input, output, criterion, learningRate)
-    local prediction  = model:forward(input)
-    local err         = criterion:forward(prediction, output)
-    local gradOutputs = criterion:backward(prediction, output)
-
-    model:zeroGradParameters()
-    model:backward(input, gradOutputs)
-    model:updateParameters(learningRate)
-end
 
 
 -- Neural net model
@@ -102,13 +95,21 @@ local net = nn.Sequential()
 
 -- I can customize the weights and bias value of each module (layer).
 -- If no value is modified, all the weights are randomly generated.
-local module_01 = nn.Linear(SIZE_INPUT, SIZE_OUTPUT)
--- module_01.weight = ...
--- module_01.bias = ...
+module_01 = nn.Linear(SIZE_INPUT, SIZE_HIDDEN_LAYER)
+module_02 = nn.Linear(SIZE_HIDDEN_LAYER, SIZE_OUTPUT)
 
 -- Add the layer(s) to the net.
 net:add(module_01)
+net:add(nn.Tanh())
+net:add(module_02)
 
+--[[
+-- View the weights and biases
+print(net:get(1).weight[1])
+print(net:get(1).bias[1])
+print(net:get(2).weight[1])
+print(net:get(2).bias[1])
+]]
 
 -- For back propagation
 criterion = nn.MSECriterion(1)
@@ -125,38 +126,29 @@ local output = torch.Tensor(NUM_DAY-1, SIZE_OUTPUT)
 -- Apply the training function for each day (except the last day)
 for i = 1, NUM_DAY - 1 do
     -- Build the input tensor (try the morning set first)
-    local input_storage = torch.Storage(4)
-    input_storage[1]    = morning_glucose[i]
-    input_storage[2]    = morning_SAI[i]
-    input_storage[3]    = morning_food[i]
-    input_storage[4]    = morning_exercise[i]
+    local input_storage  = torch.Storage(SIZE_INPUT)
+    local output_storate = torch.Storage(SIZE_OUTPUT)
+    input_storage[1]     = morning_glucose[i]
+    input_storage[2]     = morning_SAI[i]
+    input_storage[3]     = morning_food[i]
+    input_storage[4]     = morning_exercise[i]
+    output_storage       = morning_glucose[i+1]
 
     -- Convert input to a Tensor
-    input[i]  = torch.Tensor(input_storage)
+    input[i]   = torch.Tensor(input_storage)
+    output[i]  = torch.Tensor(output_storate)
 
     -- Train process
-    output[i] = calculate(net, input[i])
-    --gradientUpgrade(net, input, output, criterion, 0.01)
+    -- gradientUpgrade(net, input[i], output[i], criterion, 0.01)
+    output[i] = net:forward(input[i])
 
+    
     print('\nDay #' .. i)
     print('Prediction: ' .. output[i][1])
     print('Expectation: ' .. expectation[i])
-
-    -- Test process
-    -- < CODE GOES HERE >
-
-    -- Validate process
-    -- < CODE GOES HERE >
+    break
 end
 
---[[
-for i = 1, 1000 do
-    gradientUpgrade(net, input, expectation, criterion, 0.01)
-end
-
-print('\nprediction = ' .. net:forward(input[12])[1])
-print('loss = ' .. criterion:forward(net:forward(input), expectation))
-]]--
 
 -- Plot
 gnuplot.setterm('x11')
