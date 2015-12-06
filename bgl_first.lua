@@ -17,7 +17,8 @@ require("bgl_dataLoading.lua")
 require("bgl_generateSets.lua")
 require("bgl_activationFunctions.lua")
 require("bgl_feedForward.lua")
-require("bgl_mse.lua")
+-- require("bgl_mse.lua")
+require("bgl_backPropagation.lua")
 
 -- Seed the random function
 math.randomseed(os.time())
@@ -97,10 +98,13 @@ for i = 1, NUM_DAY - 1 do
     expectation[i] = morning_glucose[i + 1]
 end
 
--- Bias
-local bias = math.random()
+-- Number of training iterations
+local EPOCH_TIMES = 10
 
--- Random the weights
+-- Initiate error, learningRate, bias, and weight
+local error = 0
+local learningRate = 0.01
+local bias = math.random()
 local weight = {}
 for i = 1, SIZE_OUTPUT do
     weight[i] = {}
@@ -109,16 +113,21 @@ for i = 1, SIZE_OUTPUT do
     end
 end
 
-prediction[1] = feedForward(input[1], weight, bias)
---print(mse(expectation[1], prediction[1][1]))
-local error = expectation[1] - prediction[1][1]
-print('Expectation: ' .. expectation[1])
-print('Prediction: ' .. prediction[1][1])
-print('Error: ' .. error)
+-- Start training
+for i = 1, EPOCH_TIMES do
+    -- Reset error for a new epoch
+    error = 0
+
+    prediction[1] = feedForward(input[1], weight, bias)
+    error = error + 0.5 * (expectation[1] - prediction[1][1]) * (expectation[1] - prediction[1][1])
+    weight = backPropagation(error, weight, learningRate)
+    print(prediction)
+end
 
 -- Divide the dataset
 local train, test, validation 
     = generateSets(NUM_DAY - 1, PERCENT_TRAIN, PERCENT_TEST, PERCENT_VALIDATION)
+
 
 -- Plot
 --[[

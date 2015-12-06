@@ -13,7 +13,7 @@
 require 'torch'
 require 'nn'
 require 'gnuplot'
-require("bgl_dataLoading2.lua")
+require("bgl_dataLoading.lua")
 require("bgl_generateSets.lua")
 
 
@@ -77,84 +77,141 @@ function gradientUpgrade(model, input, output, criterion, learningRate)
 end
 
 -- Create a tensor for expected values
-local expectation_storage = torch.Storage(NUM_DAY - 1)
+local expectation_storage = {}
 for i = 1, NUM_DAY - 1 do
     expectation_storage[i] = morning_glucose[i + 1]
 end
 local expectation = torch.Tensor(expectation_storage)
 
 
--- Neural net model
--- 4 inputs
--- 1 hidden layer with 10 nodes
--- 1 output
+-- Neural net model:
+--   + Linear
+--   + 4 inputs
+--   + 1 hidden layer with 10 nodes
+--   + 1 output
+--
 local SIZE_INPUT = 4
 local SIZE_HIDDEN_LAYER = 10
 local SIZE_OUTPUT = 1
-local net = nn.Sequential()
-
--- I can customize the weights and bias value of each module (layer).
--- If no value is modified, all the weights are randomly generated.
-module_01 = nn.Linear(SIZE_INPUT, SIZE_HIDDEN_LAYER)
-module_02 = nn.Linear(SIZE_HIDDEN_LAYER, SIZE_OUTPUT)
-
--- Add the layer(s) to the net.
-net:add(module_01)
-net:add(nn.Tanh())
-net:add(module_02)
-
---[[
--- View the weights and biases
-print(net:get(1).weight[1])
-print(net:get(1).bias[1])
-print(net:get(2).weight[1])
-print(net:get(2).bias[1])
-]]
-
--- For back propagation
-criterion = nn.MSECriterion(1)
 
 
 -- Divide the dataset
-local train, test, validation = generateSets(NUM_DAY - 1, 60, 20, 20)
+local train, test, validation = generateSets(NUM_DAY - 1, 50, 25, 25)
 
 -- Input and output of the neural net
-local input  = torch.Tensor(NUM_DAY-1, SIZE_INPUT)
-local output = torch.Tensor(NUM_DAY-1, SIZE_OUTPUT)
+local train_input  = torch.Tensor(#train, SIZE_INPUT)
+local train_output = torch.Tensor(#train)
+local test_input  = torch.Tensor(#test, SIZE_INPUT)
+local test_output = torch.Tensor(#test)
+local validation_input  = torch.Tensor(#validation, SIZE_INPUT)
+local validation_output = torch.Tensor(#validation)
+
+local input_storage, output_storage, counter = {}, {}, 0
+-- Load data into input & output
+for key, val in pairs(train) do
+	counter = counter + 1
+	input_storage[counter] = {}
+
+    input_storage[counter][1] = morning_glucose[val]
+    input_storage[counter][2] = morning_SAI[val]
+    input_storage[counter][3] = morning_food[val]
+    input_storage[counter][4] = morning_exercise[val]
+    output_storage[counter]   = morning_glucose[val+1]
+end
+-- Convert input to a Tensor
+train_input  = torch.Tensor(input_storage)
+train_output = torch.Tensor(output_storage)
 
 
--- Apply the training function for each day (except the last day)
-for i = 1, NUM_DAY - 1 do
-    -- Build the input tensor (try the morning set first)
-    local input_storage  = torch.Storage(SIZE_INPUT)
-    local output_storate = torch.Storage(SIZE_OUTPUT)
-    input_storage[1]     = morning_glucose[i]
-    input_storage[2]     = morning_SAI[i]
-    input_storage[3]     = morning_food[i]
-    input_storage[4]     = morning_exercise[i]
-    output_storage       = morning_glucose[i+1]
+input_storage, output_storage, counter = {}, {}, 0
+-- Load data into input & output
+for key, val in pairs(test) do
+	counter = counter + 1
+	input_storage[counter] = {}
 
-    -- Convert input to a Tensor
-    input[i]   = torch.Tensor(input_storage)
-    output[i]  = torch.Tensor(output_storate)
+    input_storage[counter][1] = morning_glucose[val]
+    input_storage[counter][2] = morning_SAI[val]
+    input_storage[counter][3] = morning_food[val]
+    input_storage[counter][4] = morning_exercise[val]
+    output_storage[counter]   = morning_glucose[val+1]
+end
+-- Convert input to a Tensor
+test_input  = torch.Tensor(input_storage)
+test_output = torch.Tensor(output_storage)
 
-    -- Train process
-    -- gradientUpgrade(net, input[i], output[i], criterion, 0.01)
-    output[i] = net:forward(input[i])
 
-    
-    print('\nDay #' .. i)
-    print('Prediction: ' .. output[i][1])
-    print('Expectation: ' .. expectation[i])
-    break
+input_storage, output_storage, counter = {}, {}, 0
+-- Load data into input & output
+for key, val in pairs(validation) do
+	counter = counter + 1
+	input_storage[counter] = {}
+
+    input_storage[counter][1] = morning_glucose[val]
+    input_storage[counter][2] = morning_SAI[val]
+    input_storage[counter][3] = morning_food[val]
+    input_storage[counter][4] = morning_exercise[val]
+    output_storage[counter]   = morning_glucose[val+1]
+end
+-- Convert input to a Tensor
+validation_input  = torch.Tensor(input_storage)
+validation_output = torch.Tensor(output_storage)
+
+
+local EPOCH_TIMES = 1000
+local threshold = 4.0        -- For validation set
+local learningRate = 0.001   -- 
+local thresholdMet = false
+local epoch = 0
+local minError = 100         -- The error should be lower than this value
+local sumError = 0
+
+local net = nn.Sequential()
+criterion = nn.MSECriterion(1)
+module_01 = nn.Linear(SIZE_INPUT, SIZE_HIDDEN_LAYER)
+module_02 = nn.Linear(SIZE_HIDDEN_LAYER, SIZE_OUTPUT)
+net:add(module_01)
+net:add(nn.LogSigmoid())
+net:add(module_02)
+-- Set weights and biases
+--net:get(1).bias[1] = 12
+--net:get(1).weight[1] = 2
+
+local startTime = os.clock()
+
+while not thresholdMet and epoch < EPOCH_TIMES do
+	epoch = epoch + 1
+	print('\nEpoch #' .. epoch)
+
+	-- Train
+	gradientUpgrade(net, train_input, train_output, criterion, learningRate)
+ 
+	-- Validate
+	local pred = net:forward(validation_input)
+	local err = criterion:forward(pred, validation_output)
+	print("Validation Error: " .. err)
+	if err < threshold then thresholdMet = true end 
+	if err < minError then minError = err end
+	sumError = sumError + err
 end
 
 
+--[[ 
+--
+-- TEST
+--
+]]
+local prediction = net:forward(test_input)
+local err = criterion:forward(prediction, test_output)
+print("\nTraining Duration: " .. os.clock() - startTime .. "s")
+print("Smallest Validation Error: " .. minError)
+print("Average Validation Error: " .. sumError / epoch)
+print("Test Error: " .. err)
+
 -- Plot
-gnuplot.setterm('x11')
 gnuplot.pngfigure('graph/firstCombination.png')
 gnuplot.title('First Combination - Morning Values')
 gnuplot.xlabel('Day')
 gnuplot.ylabel('Glucose Level')
-gnuplot.plot({'Prediction', output}, {'Expectation', expectation})
+gnuplot.plot({'Prediction', prediction}, {'Expectation', test_output})
 gnuplot.plotflush()
+

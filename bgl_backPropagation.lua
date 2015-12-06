@@ -6,6 +6,8 @@
 -- Back propagation function of a neural network
 --]]
 
-function backProragation()
-    
+function backPropagation(error, weight, learningRate)
+	local newWeight = {}
+		
+    return newWeight
 end

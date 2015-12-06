@@ -41,9 +41,9 @@ function generateSets(size, trainPercentage, testPercentage, validatePercentage)
 	local train, test, validate = {},{},{}
 
 	-- Size of each subset. They should add up to size.
-	local trainSize    = size * trainPercentage    / 100 
-	local testSize     = size * testPercentage     / 100 
-	local validateSize = size * validatePercentage / 100
+	local trainSize    = math.floor(size * trainPercentage / 100)
+	local testSize     = math.floor(size * testPercentage / 100) 
+	local validateSize = math.floor(size * validatePercentage / 100)
 
 	-- Generate the list of indices
 	local indices = {}
