@@ -16,6 +16,15 @@ require 'gnuplot'
 require("bgl_dataLoading.lua")
 require("bgl_generateSets.lua")
 
+-- Neural net model:
+--   + Linear
+--   + 4 inputs
+--   + 1 hidden layer with 10 nodes
+--   + 1 output
+--
+local SIZE_INPUT = 4
+local SIZE_HIDDEN_LAYER = 200
+local SIZE_OUTPUT = 1
 
 -- Load data
 local path = "../Datasets/Peter Kok - Real data for predicting blood glucose levels of diabetics/data.txt"
@@ -83,16 +92,6 @@ for i = 1, NUM_DAY - 1 do
 end
 local expectation = torch.Tensor(expectation_storage)
 
-
--- Neural net model:
---   + Linear
---   + 4 inputs
---   + 1 hidden layer with 10 nodes
---   + 1 output
---
-local SIZE_INPUT = 4
-local SIZE_HIDDEN_LAYER = 10
-local SIZE_OUTPUT = 1
 
 
 -- Divide the dataset
@@ -170,7 +169,7 @@ criterion = nn.MSECriterion(1)
 module_01 = nn.Linear(SIZE_INPUT, SIZE_HIDDEN_LAYER)
 module_02 = nn.Linear(SIZE_HIDDEN_LAYER, SIZE_OUTPUT)
 net:add(module_01)
-net:add(nn.LogSigmoid())
+net:add(nn.Tanh())
 net:add(module_02)
 -- Set weights and biases
 --net:get(1).bias[1] = 12
