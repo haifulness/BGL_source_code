@@ -39,16 +39,19 @@ end
 ]]
 function generateSets(size, trainPercentage, testPercentage, validatePercentage)
 	local train, test, validate = {},{},{}
+	size = size - 1  -- exclude day #1
 
 	-- Size of each subset. They should add up to size.
 	local trainSize    = math.floor(size * trainPercentage / 100)
 	local testSize     = math.floor(size * testPercentage / 100) 
-	local validateSize = math.floor(size * validatePercentage / 100)
+	local validateSize = size - trainSize - testSize
 
-	-- Generate the list of indices
+	-- Generate the list of indices.
+	-- Since some combination requires input from more than one day,
+	-- we do not include 1 here.
 	local indices = {}
 	for i = 1, size do
-		indices[i] = i
+		indices[i] = i + 1
 	end
 
 	-- Shuffle the list
