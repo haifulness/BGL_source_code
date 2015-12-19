@@ -154,7 +154,7 @@ validation_input  = torch.Tensor(input_storage)
 validation_output = torch.Tensor(output_storage)
 
 
-local EPOCH_TIMES = 10000
+local EPOCH_TIMES = 1000
 local threshold = 0.5        -- For validation set
 local learningRate = 0.00001
 local thresholdMet = false

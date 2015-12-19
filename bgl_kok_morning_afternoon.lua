@@ -1,18 +1,19 @@
 --[[
 -- Author: Hai Tran
--- Date: Dec 13, 2015
--- Filename: bgl_kok_evening.lua
+-- Date: Dec 16, 2015
+-- Filename: bgl_kok_morning_afternoon.lua
 -- Descriptiion: Simulate Peter Kok's suggestion on the combination that best
--- simulates the glucose level in the evening.
+-- simulates the glucose level in the morning. However, instead of using the
+-- morning measurements itself for validation, I'll use afternoon measurements.
 -- This combination consists of:
---   + Glucose level (during the interval)
+--   + Glucose level (at the start of the interval)
 --   + Short acting insulin (during the interval)
 --   + Food intake (during the interval)
 --   + Exercise (during the interval)
---   + Glucose level (previous interval)
---   + Short acting insulin (previous interval)
---   + Food intake (previous interval)
---   + Exercise (previous interval)
+--   + Stress (during the interval)
+--   + Long acting insulin (over the last 24 hours)
+--   + Squared exercise for past 24 hours
+--   + Interval length
 ]]
 
 require 'torch'
@@ -23,17 +24,13 @@ require("bgl_generateSets.lua")
 
 -- Neural net model:
 --   + Linear
---   + 5 inputs
+--   + 8 inputs
 --   + 1 hidden layer with 100 nodes
 --   + 1 output
 --
 local SIZE_INPUT = 8
 local SIZE_HIDDEN_LAYER = 100
 local SIZE_OUTPUT = 1
-
-
-math.randomseed(os.time())
-
 
 -- Load data
 local path = "../Datasets/Peter Kok - Real data for predicting blood glucose levels of diabetics/data.txt"
@@ -97,15 +94,17 @@ end
 
 
 -- Divide the dataset
-local train, test, validation = generateSets(NUM_DAY - 1, 40, 30, 30)
+local train, test, validation = generateSets(NUM_DAY - 1, 60, 40, 0)
 
 -- Input and output of the neural net
 local train_input  = torch.Tensor(#train, SIZE_INPUT)
 local train_output = torch.Tensor(#train)
 local test_input  = torch.Tensor(#test, SIZE_INPUT)
 local test_output = torch.Tensor(#test)
-local validation_input  = torch.Tensor(#validation, SIZE_INPUT)
-local validation_output = torch.Tensor(#validation)
+--local validation_input  = torch.Tensor(#validation, SIZE_INPUT)
+--local validation_output = torch.Tensor(#validation)
+local validation_input = torch.Tensor(NUM_DAY - 1)
+local validation_output = torch.Tensor(NUM_DAY - 1)
 
 local input_storage, output_storage, counter = {}, {}, 0
 -- Load data into input & output
@@ -113,15 +112,16 @@ for key, val in pairs(train) do
     counter = counter + 1
     input_storage[counter] = {}
 
-    input_storage[counter][1] = afternoon_glucose[val]
-    input_storage[counter][2] = evening_SAI[val]
-    input_storage[counter][3] = evening_food[val]
-    input_storage[counter][4] = evening_exercise[val]
-    input_storage[counter][5] = morning_glucose[val]
-    input_storage[counter][6] = afternoon_SAI[val]
-    input_storage[counter][7] = afternoon_food[val]
-    input_storage[counter][8] = afternoon_exercise[val]
-    output_storage[counter]   = evening_glucose[val]
+    input_storage[counter][1] = night_glucose[val]
+    input_storage[counter][2] = morning_SAI[val]
+    input_storage[counter][3] = morning_food[val]
+    input_storage[counter][4] = morning_exercise[val]
+    input_storage[counter][5] = morning_stress[val]
+    input_storage[counter][6] = morning_LAI[val - 1]
+    input_storage[counter][7] = morning_exercise[val - 1] * morning_exercise[val - 1]
+    -- I assume the interval length is 6 hours
+    input_storage[counter][8] = 6.0
+    output_storage[counter]   = morning_glucose[val]
 end
 -- Convert input to a Tensor
 train_input  = torch.Tensor(input_storage)
@@ -134,15 +134,16 @@ for key, val in pairs(test) do
     counter = counter + 1
     input_storage[counter] = {}
 
-    input_storage[counter][1] = afternoon_glucose[val]
-    input_storage[counter][2] = evening_SAI[val]
-    input_storage[counter][3] = evening_food[val]
-    input_storage[counter][4] = evening_exercise[val]
-    input_storage[counter][5] = morning_glucose[val]
-    input_storage[counter][6] = afternoon_SAI[val]
-    input_storage[counter][7] = afternoon_food[val]
-    input_storage[counter][8] = afternoon_exercise[val]
-    output_storage[counter]   = evening_glucose[val]
+    input_storage[counter][1] = night_glucose[val]
+    input_storage[counter][2] = morning_SAI[val]
+    input_storage[counter][3] = morning_food[val]
+    input_storage[counter][4] = morning_exercise[val]
+    input_storage[counter][5] = morning_stress[val]
+    input_storage[counter][6] = morning_LAI[val - 1]
+    input_storage[counter][7] = morning_exercise[val - 1] * morning_exercise[val - 1]
+    -- I assume the interval length is 6 hours
+    input_storage[counter][8] = 6.0
+    output_storage[counter]   = morning_glucose[val]
 end
 -- Convert input to a Tensor
 test_input  = torch.Tensor(input_storage)
@@ -151,19 +152,20 @@ test_output = torch.Tensor(output_storage)
 
 input_storage, output_storage, counter = {}, {}, 0
 -- Load data into input & output
-for key, val in pairs(validation) do
+for val = 2, NUM_DAY do
     counter = counter + 1
     input_storage[counter] = {}
 
-    input_storage[counter][1] = afternoon_glucose[val]
-    input_storage[counter][2] = evening_SAI[val]
-    input_storage[counter][3] = evening_food[val]
-    input_storage[counter][4] = evening_exercise[val]
-    input_storage[counter][5] = morning_glucose[val]
-    input_storage[counter][6] = afternoon_SAI[val]
-    input_storage[counter][7] = afternoon_food[val]
-    input_storage[counter][8] = afternoon_exercise[val]
-    output_storage[counter]   = evening_glucose[val]
+    input_storage[counter][1] = morning_glucose[val]
+    input_storage[counter][2] = afternoon_SAI[val]
+    input_storage[counter][3] = afternoon_food[val]
+    input_storage[counter][4] = afternoon_exercise[val]
+    input_storage[counter][5] = afternoon_stress[val]
+    input_storage[counter][6] = afternoon_LAI[val - 1]
+    input_storage[counter][7] = afternoon_exercise[val - 1] * afternoon_exercise[val - 1]
+    -- I assume the interval length is 6 hours
+    input_storage[counter][8] = 6.0
+    output_storage[counter]   = afternoon_glucose[val]
 end
 -- Convert input to a Tensor
 validation_input  = torch.Tensor(input_storage)
@@ -172,28 +174,23 @@ validation_output = torch.Tensor(output_storage)
 
 local EPOCH_TIMES = 1000
 local threshold = 0.1        -- For validation set
-local learningRate = 0.001
+local learningRate = 0.0001 
 local thresholdMet = false
 local epoch = 0
-local minError = 100         -- The error should be lower than this value
+local minError = 100         -- The error is surely lower than this value
 local sumError = 0
 
 local net = nn.Sequential()
-criterion = nn.MSECriterion(1)
+criterion = nn.MSECriterion()
 module_01 = nn.Linear(SIZE_INPUT, SIZE_HIDDEN_LAYER)
 module_02 = nn.Linear(SIZE_HIDDEN_LAYER, SIZE_OUTPUT)
 net:add(module_01)
-net:add(nn.Sigmoid())
+net:add(nn.Tanh())
 net:add(module_02)
 
 -- Set weights and biases
---[[
-for i = 1, SIZE_HIDDEN_LAYER do
-    net:get(1).weight[i] = math.random()
-end
-net:get(1).bias[1] = math.random(-0.3, 0.3)
-]]
-
+--net:get(1).bias[1] = 2
+--net:get(1).weight[1] = 2
 
 local startTime = os.clock()
 local prediction
@@ -233,27 +230,28 @@ end
 prediction = net:forward(test_input)
 local err = criterion:forward(prediction, test_output)
 
-for i = 1, SIZE_HIDDEN_LAYER do
-    print(net:get(1).weight[i])
-end
-print(net:get(1).bias[1])
-
 print("\nTraining Duration: " .. os.clock() - startTime .. "s")
 print("Smallest Validation Error: " .. minError)
 print("Average Validation Error: " .. sumError / EPOCH_TIMES)
 print("Test Error: " .. err)
 
+--[[
+--
 -- Plot
-gnuplot.pngfigure('graph/Dec 13/kok_evening.png')
-gnuplot.title('Peter Kok\'s Choice For Evening')
+--
+--]]
+gnuplot.pngfigure('graph/Dec 16/kok_morning_afternoon.png')
+gnuplot.title('Peter Kok\'s Choice For Morning, Validated By Afternoon')
 gnuplot.ylabel('Glucose Level')
 gnuplot.plot({'Prediction', prediction}, {'Expectation', test_output})
 gnuplot.plotflush()
 
 
-gnuplot.pngfigure('graph/Dec 13/kok_evening_error.png')
-gnuplot.title('Peter Kok\'s Choice For Evening - Error')
+gnuplot.pngfigure('graph/Dec 16/kok_morning_afternoon_error.png')
+gnuplot.title('Peter Kok\'s Choice For Morning, Validated By Afternoon - Error')
 gnuplot.ylabel('Glucose Level')
 gnuplot.plot({'Train Error', torch.Tensor(trainErr)}, 
     {'Validation Error', torch.Tensor(validationErr)})
 gnuplot.plotflush()
+
+

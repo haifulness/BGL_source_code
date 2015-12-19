@@ -28,7 +28,7 @@ require("bgl_generateSets.lua")
 --   + 1 output
 --
 local SIZE_INPUT = 8
-local SIZE_HIDDEN_LAYER = 100
+local SIZE_HIDDEN_LAYER = 20
 local SIZE_OUTPUT = 1
 
 -- Load data
@@ -109,16 +109,16 @@ for key, val in pairs(train) do
     counter = counter + 1
     input_storage[counter] = {}
 
-    input_storage[counter][1] = night_glucose[val]
-    input_storage[counter][2] = night_SAI[val]
-    input_storage[counter][3] = night_food[val]
-    input_storage[counter][4] = night_exercise[val]
-    input_storage[counter][5] = night_stress[val]
+    input_storage[counter][1] = night_glucose[val - 1]
+    input_storage[counter][2] = morning_SAI[val]
+    input_storage[counter][3] = morning_food[val]
+    input_storage[counter][4] = morning_exercise[val]
+    input_storage[counter][5] = morning_stress[val]
     input_storage[counter][6] = morning_LAI[val - 1]
     input_storage[counter][7] = morning_exercise[val - 1] * morning_exercise[val - 1]
     -- I assume the interval length is 6 hours
     input_storage[counter][8] = 6.0
-    output_storage[counter]   = morning_glucose[val+1]
+    output_storage[counter]   = morning_glucose[val]
 end
 -- Convert input to a Tensor
 train_input  = torch.Tensor(input_storage)
@@ -131,16 +131,16 @@ for key, val in pairs(test) do
     counter = counter + 1
     input_storage[counter] = {}
 
-    input_storage[counter][1] = night_glucose[val]
-    input_storage[counter][2] = night_SAI[val]
-    input_storage[counter][3] = night_food[val]
-    input_storage[counter][4] = night_exercise[val]
-    input_storage[counter][5] = night_stress[val]
+    input_storage[counter][1] = night_glucose[val - 1]
+    input_storage[counter][2] = morning_SAI[val]
+    input_storage[counter][3] = morning_food[val]
+    input_storage[counter][4] = morning_exercise[val]
+    input_storage[counter][5] = morning_stress[val]
     input_storage[counter][6] = morning_LAI[val - 1]
     input_storage[counter][7] = morning_exercise[val - 1] * morning_exercise[val - 1]
     -- I assume the interval length is 6 hours
     input_storage[counter][8] = 6.0
-    output_storage[counter]   = morning_glucose[val+1]
+    output_storage[counter]   = morning_glucose[val]
 end
 -- Convert input to a Tensor
 test_input  = torch.Tensor(input_storage)
@@ -153,37 +153,38 @@ for key, val in pairs(validation) do
     counter = counter + 1
     input_storage[counter] = {}
 
-    input_storage[counter][1] = night_glucose[val]
-    input_storage[counter][2] = night_SAI[val]
-    input_storage[counter][3] = night_food[val]
-    input_storage[counter][4] = night_exercise[val]
-    input_storage[counter][5] = night_stress[val]
+    input_storage[counter][1] = night_glucose[val - 1]
+    input_storage[counter][2] = morning_SAI[val]
+    input_storage[counter][3] = morning_food[val]
+    input_storage[counter][4] = morning_exercise[val]
+    input_storage[counter][5] = morning_stress[val]
     input_storage[counter][6] = morning_LAI[val - 1]
     input_storage[counter][7] = morning_exercise[val - 1] * morning_exercise[val - 1]
     -- I assume the interval length is 6 hours
     input_storage[counter][8] = 6.0
-    output_storage[counter]   = morning_glucose[val+1]
+    output_storage[counter]   = morning_glucose[val]
 end
 -- Convert input to a Tensor
 validation_input  = torch.Tensor(input_storage)
 validation_output = torch.Tensor(output_storage)
 
 
-local EPOCH_TIMES = 1000
-local threshold = 0.5        -- For validation set
-local learningRate = 0.001   -- 
+local EPOCH_TIMES = 10000
+local threshold = 0.1        -- For validation set
+local learningRate = 0.001 
 local thresholdMet = false
 local epoch = 0
-local minError = 100         -- The error should be lower than this value
+local minError = 100         -- The error is surely lower than this value
 local sumError = 0
 
 local net = nn.Sequential()
-criterion = nn.MSECriterion(1)
+criterion = nn.MSECriterion()
 module_01 = nn.Linear(SIZE_INPUT, SIZE_HIDDEN_LAYER)
 module_02 = nn.Linear(SIZE_HIDDEN_LAYER, SIZE_OUTPUT)
 net:add(module_01)
 net:add(nn.Tanh())
 net:add(module_02)
+
 -- Set weights and biases
 --net:get(1).bias[1] = 2
 --net:get(1).weight[1] = 2
@@ -232,17 +233,23 @@ print("Smallest Validation Error: " .. minError)
 print("Average Validation Error: " .. sumError / EPOCH_TIMES)
 print("Test Error: " .. err)
 
+--[[
+--
 -- Plot
-gnuplot.pngfigure('graph/Dec 13/kok_morning.png')
+--
+--]]
+gnuplot.pngfigure('graph/Dec 16/kok_morning.png')
 gnuplot.title('Peter Kok\'s Choice For Morning')
 gnuplot.ylabel('Glucose Level')
 gnuplot.plot({'Prediction', prediction}, {'Expectation', test_output})
 gnuplot.plotflush()
 
 
-gnuplot.pngfigure('graph/Dec 13/kok_morning_error.png')
+gnuplot.pngfigure('graph/Dec 16/kok_morning_error.png')
 gnuplot.title('Peter Kok\'s Choice For Morning - Error')
 gnuplot.ylabel('Glucose Level')
 gnuplot.plot({'Train Error', torch.Tensor(trainErr)}, 
     {'Validation Error', torch.Tensor(validationErr)})
 gnuplot.plotflush()
+
+

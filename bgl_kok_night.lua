@@ -31,6 +31,25 @@ local SIZE_INPUT = 8
 local SIZE_HIDDEN_LAYER = 100
 local SIZE_OUTPUT = 1
 
+local EPOCH_TIMES = 100000
+local threshold = 0.00001    -- For validation set
+local learningRate = 0.0001
+local thresholdMet = false
+local epoch = 0
+local minError = 100         -- The error should be lower than this value
+local sumError = 0
+
+local net = nn.Sequential()
+criterion = nn.MSECriterion(1)
+module_01 = nn.Linear(SIZE_INPUT, SIZE_HIDDEN_LAYER)
+module_02 = nn.Linear(SIZE_HIDDEN_LAYER, SIZE_OUTPUT)
+net:add(module_01)
+net:add(nn.Sigmoid())
+net:add(module_02)
+-- Set weights and biases
+--net:get(1).bias[1] = 2
+--net:get(1).weight[1] = 2
+
 -- Load data
 local path = "../Datasets/Peter Kok - Real data for predicting blood glucose levels of diabetics/data.txt"
 local 
@@ -166,24 +185,7 @@ validation_input  = torch.Tensor(input_storage)
 validation_output = torch.Tensor(output_storage)
 
 
-local EPOCH_TIMES = 100000
-local threshold = 0.00001    -- For validation set
-local learningRate = 0.0001
-local thresholdMet = false
-local epoch = 0
-local minError = 100         -- The error should be lower than this value
-local sumError = 0
 
-local net = nn.Sequential()
-criterion = nn.MSECriterion(1)
-module_01 = nn.Linear(SIZE_INPUT, SIZE_HIDDEN_LAYER)
-module_02 = nn.Linear(SIZE_HIDDEN_LAYER, SIZE_OUTPUT)
-net:add(module_01)
-net:add(nn.Sigmoid())
-net:add(module_02)
--- Set weights and biases
---net:get(1).bias[1] = 2
---net:get(1).weight[1] = 2
 
 local startTime = os.clock()
 local prediction
@@ -243,3 +245,45 @@ gnuplot.ylabel('Glucose Level')
 gnuplot.plot({'Train Error', torch.Tensor(trainErr)}, 
     {'Validation Error', torch.Tensor(validationErr)})
 gnuplot.plotflush()
+
+
+
+--[[
+--
+-- Save the net & the datasets to files
+--
+]]
+local file = io.open("datasets.txt", "w")
+
+file:write(tostring(#train))
+file:write(";")
+file:write(tostring(#test))
+file:write(";")
+file:write(tostring(#validation))
+file:write(";")
+
+for key, val in pairs(train) do
+    file:write(tostring(val))
+    file:write(";")
+end
+for key, val in pairs(test) do
+    file:write(tostring(val))
+    file:write(";")
+end
+for key, val in pairs(validation) do
+    file:write(tostring(val))
+    file:write(";")
+end
+file:close()
+
+
+file = io.open("net_night.txt", "w")
+for i = 1, SIZE_HIDDEN_LAYER do
+    for j = 1, SIZE_INPUT do
+        local w = net:get(1).weight[i][j]
+        file:write(tostring(w))
+        file:write(";")
+    end
+end
+file:close()
+

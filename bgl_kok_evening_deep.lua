@@ -1,7 +1,7 @@
 --[[
 -- Author: Hai Tran
--- Date: Dec 13, 2015
--- Filename: bgl_kok_evening.lua
+-- Date: Dec 17, 2015
+-- Filename: bgl_kok_evening_deep.lua
 -- Descriptiion: Simulate Peter Kok's suggestion on the combination that best
 -- simulates the glucose level in the evening.
 -- This combination consists of:
@@ -24,16 +24,12 @@ require("bgl_generateSets.lua")
 -- Neural net model:
 --   + Linear
 --   + 5 inputs
---   + 1 hidden layer with 100 nodes
+--   + 2 hidden layer with 20 nodes each
 --   + 1 output
 --
 local SIZE_INPUT = 8
 local SIZE_HIDDEN_LAYER = 100
 local SIZE_OUTPUT = 1
-
-
-math.randomseed(os.time())
-
 
 -- Load data
 local path = "../Datasets/Peter Kok - Real data for predicting blood glucose levels of diabetics/data.txt"
@@ -181,19 +177,12 @@ local sumError = 0
 local net = nn.Sequential()
 criterion = nn.MSECriterion(1)
 module_01 = nn.Linear(SIZE_INPUT, SIZE_HIDDEN_LAYER)
-module_02 = nn.Linear(SIZE_HIDDEN_LAYER, SIZE_OUTPUT)
+module_02 = nn.Linear(SIZE_HIDDEN_LAYER, SIZE_HIDDEN_LAYER)
+module_03 = nn.Linear(SIZE_HIDDEN_LAYER, SIZE_OUTPUT)
 net:add(module_01)
-net:add(nn.Sigmoid())
 net:add(module_02)
-
--- Set weights and biases
---[[
-for i = 1, SIZE_HIDDEN_LAYER do
-    net:get(1).weight[i] = math.random()
-end
-net:get(1).bias[1] = math.random(-0.3, 0.3)
-]]
-
+net:add(nn.Sigmoid())
+net:add(module_03)
 
 local startTime = os.clock()
 local prediction
@@ -230,28 +219,24 @@ end
 -- TEST
 --
 ]]
-prediction = net:forward(test_input)
-local err = criterion:forward(prediction, test_output)
-
-for i = 1, SIZE_HIDDEN_LAYER do
-    print(net:get(1).weight[i])
-end
-print(net:get(1).bias[1])
-
+--for i = 1, #test do
+    prediction = net:forward(test_input)
+    local err = criterion:forward(prediction, test_output)
+--end
 print("\nTraining Duration: " .. os.clock() - startTime .. "s")
 print("Smallest Validation Error: " .. minError)
 print("Average Validation Error: " .. sumError / EPOCH_TIMES)
 print("Test Error: " .. err)
 
 -- Plot
-gnuplot.pngfigure('graph/Dec 13/kok_evening.png')
+gnuplot.pngfigure('graph/Dec 17/kok_evening_deep.png')
 gnuplot.title('Peter Kok\'s Choice For Evening')
 gnuplot.ylabel('Glucose Level')
 gnuplot.plot({'Prediction', prediction}, {'Expectation', test_output})
 gnuplot.plotflush()
 
 
-gnuplot.pngfigure('graph/Dec 13/kok_evening_error.png')
+gnuplot.pngfigure('graph/Dec 17/kok_evening_deep_error.png')
 gnuplot.title('Peter Kok\'s Choice For Evening - Error')
 gnuplot.ylabel('Glucose Level')
 gnuplot.plot({'Train Error', torch.Tensor(trainErr)}, 
