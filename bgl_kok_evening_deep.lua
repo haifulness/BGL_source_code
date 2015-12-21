@@ -24,12 +24,36 @@ require("bgl_generateSets.lua")
 -- Neural net model:
 --   + Linear
 --   + 5 inputs
---   + 2 hidden layer with 20 nodes each
+--   + Multiple hidden layer with 100 nodes each
 --   + 1 output
 --
 local SIZE_INPUT = 8
 local SIZE_HIDDEN_LAYER = 100
 local SIZE_OUTPUT = 1
+
+local EPOCH_TIMES = 1e5
+local threshold = 0.1        -- For validation set
+local learningRate = 1e-5
+local thresholdMet = false
+local epoch = 0
+local minError = 100         -- The error should be lower than this value
+local sumError = 0
+
+local net = nn.Sequential()
+criterion = nn.MSECriterion(1)
+module_01 = nn.Linear(SIZE_INPUT, SIZE_HIDDEN_LAYER)
+module_02 = nn.Linear(SIZE_HIDDEN_LAYER, SIZE_HIDDEN_LAYER)
+module_03 = nn.Linear(SIZE_HIDDEN_LAYER, SIZE_HIDDEN_LAYER)
+module_04 = nn.Linear(SIZE_HIDDEN_LAYER, SIZE_HIDDEN_LAYER)
+module_05 = nn.Linear(SIZE_HIDDEN_LAYER, SIZE_HIDDEN_LAYER)
+module_06 = nn.Linear(SIZE_HIDDEN_LAYER, SIZE_OUTPUT)
+net:add(module_01)
+net:add(module_02)
+net:add(module_03)
+net:add(module_04)
+net:add(module_05)
+net:add(nn.Tanh())
+net:add(module_06)
 
 -- Load data
 local path = "../Datasets/Peter Kok - Real data for predicting blood glucose levels of diabetics/data.txt"
@@ -166,23 +190,6 @@ validation_input  = torch.Tensor(input_storage)
 validation_output = torch.Tensor(output_storage)
 
 
-local EPOCH_TIMES = 1000
-local threshold = 0.1        -- For validation set
-local learningRate = 0.001
-local thresholdMet = false
-local epoch = 0
-local minError = 100         -- The error should be lower than this value
-local sumError = 0
-
-local net = nn.Sequential()
-criterion = nn.MSECriterion(1)
-module_01 = nn.Linear(SIZE_INPUT, SIZE_HIDDEN_LAYER)
-module_02 = nn.Linear(SIZE_HIDDEN_LAYER, SIZE_HIDDEN_LAYER)
-module_03 = nn.Linear(SIZE_HIDDEN_LAYER, SIZE_OUTPUT)
-net:add(module_01)
-net:add(module_02)
-net:add(nn.Sigmoid())
-net:add(module_03)
 
 local startTime = os.clock()
 local prediction
@@ -229,16 +236,17 @@ print("Average Validation Error: " .. sumError / EPOCH_TIMES)
 print("Test Error: " .. err)
 
 -- Plot
-gnuplot.pngfigure('graph/Dec 17/kok_evening_deep.png')
+gnuplot.pngfigure('graph/Dec 19/kok_evening_deep.png')
 gnuplot.title('Peter Kok\'s Choice For Evening')
 gnuplot.ylabel('Glucose Level')
 gnuplot.plot({'Prediction', prediction}, {'Expectation', test_output})
 gnuplot.plotflush()
 
-
-gnuplot.pngfigure('graph/Dec 17/kok_evening_deep_error.png')
+--[[
+gnuplot.pngfigure('graph/Dec 19/kok_evening_deep_error.png')
 gnuplot.title('Peter Kok\'s Choice For Evening - Error')
 gnuplot.ylabel('Glucose Level')
 gnuplot.plot({'Train Error', torch.Tensor(trainErr)}, 
     {'Validation Error', torch.Tensor(validationErr)})
 gnuplot.plotflush()
+]]

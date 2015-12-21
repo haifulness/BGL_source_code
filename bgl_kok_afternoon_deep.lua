@@ -1,18 +1,15 @@
 --[[
 -- Author: Hai Tran
--- Date: Dec 17, 2015
--- Filename: bgl_kok_night_deep.lua
+-- Date: Dec 20, 2015
+-- Filename: bgl_kok_afternoon_deep.lua
 -- Descriptiion: Simulate Peter Kok's suggestion on the combination that best
--- simulates the glucose level in the evening.
+-- simulates the glucose level in the afternoon.
 -- This combination consists of:
 --   + Glucose level (during the interval)
 --   + Short acting insulin (during the interval)
 --   + Food intake (during the interval)
 --   + Exercise (during the interval)
---   + Glucose level (previous interval)
---   + Short acting insulin (previous interval)
---   + Food intake (previous interval)
---   + Exercise (previous interval)
+--   + Stress (during the interval)
 ]]
 
 require 'torch'
@@ -24,16 +21,16 @@ require("bgl_generateSets.lua")
 -- Neural net model:
 --   + Linear
 --   + 8 inputs
---   + 2 hidden layer with 100 nodes each
+--   + Multiple hidden layer with 100 nodes each
 --   + 1 output
 --
-local SIZE_INPUT = 8
-local SIZE_HIDDEN_LAYER = 20
+local SIZE_INPUT = 5
+local SIZE_HIDDEN_LAYER = 100
 local SIZE_OUTPUT = 1
 
 local EPOCH_TIMES = 1e5
-local threshold = 1e-4    -- For validation set
-local learningRate = 0.00001
+local threshold = 0.5        -- For validation set
+local learningRate = 1e-5
 local thresholdMet = false
 local epoch = 0
 local minError = 100         -- The error should be lower than this value
@@ -52,7 +49,7 @@ net:add(module_02)
 net:add(module_03)
 net:add(module_04)
 net:add(module_05)
-net:add(nn.Sigmoid())
+net:add(nn.Tanh())
 net:add(module_06)
 -- Set weights and biases
 --net:get(1).bias[1] = 2
@@ -136,15 +133,12 @@ for key, val in pairs(train) do
     counter = counter + 1
     input_storage[counter] = {}
 
-    input_storage[counter][1] = evening_glucose[val]
-    input_storage[counter][2] = night_SAI[val]
-    input_storage[counter][3] = night_food[val]
-    input_storage[counter][4] = night_exercise[val]
-    input_storage[counter][5] = night_stress[val]
-    input_storage[counter][6] = night_LAI[val - 1]
-    input_storage[counter][7] = night_exercise[val - 1] * night_exercise[val - 1]
-    input_storage[counter][8] = 6  -- assume the interval length is 6 hours
-    output_storage[counter]   = night_glucose[val]
+    input_storage[counter][1] = morning_glucose[val]
+    input_storage[counter][2] = afternoon_SAI[val]
+    input_storage[counter][3] = afternoon_food[val]
+    input_storage[counter][4] = afternoon_exercise[val]
+    input_storage[counter][5] = afternoon_stress[val]
+    output_storage[counter]   = afternoon_glucose[val]
 end
 -- Convert input to a Tensor
 train_input  = torch.Tensor(input_storage)
@@ -157,15 +151,12 @@ for key, val in pairs(test) do
     counter = counter + 1
     input_storage[counter] = {}
 
-    input_storage[counter][1] = evening_glucose[val]
-    input_storage[counter][2] = night_SAI[val]
-    input_storage[counter][3] = night_food[val]
-    input_storage[counter][4] = night_exercise[val]
-    input_storage[counter][5] = night_stress[val]
-    input_storage[counter][6] = night_LAI[val - 1]
-    input_storage[counter][7] = night_exercise[val - 1] * night_exercise[val - 1]
-    input_storage[counter][8] = 6  -- assume the interval length is 6 hours
-    output_storage[counter]   = night_glucose[val]
+    input_storage[counter][1] = morning_glucose[val]
+    input_storage[counter][2] = afternoon_SAI[val]
+    input_storage[counter][3] = afternoon_food[val]
+    input_storage[counter][4] = afternoon_exercise[val]
+    input_storage[counter][5] = afternoon_stress[val]
+    output_storage[counter]   = afternoon_glucose[val]
 end
 -- Convert input to a Tensor
 test_input  = torch.Tensor(input_storage)
@@ -178,19 +169,17 @@ for key, val in pairs(validation) do
     counter = counter + 1
     input_storage[counter] = {}
 
-    input_storage[counter][1] = evening_glucose[val]
-    input_storage[counter][2] = night_SAI[val]
-    input_storage[counter][3] = night_food[val]
-    input_storage[counter][4] = night_exercise[val]
-    input_storage[counter][5] = night_stress[val]
-    input_storage[counter][6] = night_LAI[val - 1]
-    input_storage[counter][7] = night_exercise[val - 1] * night_exercise[val - 1]
-    input_storage[counter][8] = 6  -- assume the interval length is 6 hours
-    output_storage[counter]   = night_glucose[val]
+    input_storage[counter][1] = morning_glucose[val]
+    input_storage[counter][2] = afternoon_SAI[val]
+    input_storage[counter][3] = afternoon_food[val]
+    input_storage[counter][4] = afternoon_exercise[val]
+    input_storage[counter][5] = afternoon_stress[val]
+    output_storage[counter]   = afternoon_glucose[val]
 end
 -- Convert input to a Tensor
 validation_input  = torch.Tensor(input_storage)
 validation_output = torch.Tensor(output_storage)
+
 
 
 
@@ -229,39 +218,27 @@ end
 -- TEST
 --
 ]]
-prediction = net:forward(test_input)
-local err = criterion:forward(prediction, test_output)
-
+--for i = 1, #test do
+    prediction = net:forward(test_input)
+    local err = criterion:forward(prediction, test_output)
+--end
 print("\nTraining Duration: " .. os.clock() - startTime .. "s")
 print("Smallest Validation Error: " .. minError)
 print("Average Validation Error: " .. sumError / EPOCH_TIMES)
 print("Test Error: " .. err)
 
---[[
---
--- PLOT
---
-]]
-gnuplot.pngfigure('graph/Dec 19/kok_night_deep.png')
-gnuplot.title('Peter Kok\'s Choice For Night')
+-- Plot
+gnuplot.pngfigure('graph/Dec 19/kok_afternoon.png')
+gnuplot.title('Peter Kok\'s Choice For Afternoon')
 gnuplot.ylabel('Glucose Level')
 gnuplot.plot({'Prediction', prediction}, {'Expectation', test_output})
 gnuplot.plotflush()
 
-
 --[[
-gnuplot.pngfigure('graph/Dec 17/kok_night_deep_error.png')
-gnuplot.title('Peter Kok\'s Choice For Night - Error')
+gnuplot.pngfigure('graph/Dec 19/kok_afternoon_error.png')
+gnuplot.title('Peter Kok\'s Choice For Afternoon - Error')
 gnuplot.ylabel('Glucose Level')
 gnuplot.plot({'Train Error', torch.Tensor(trainErr)}, 
     {'Validation Error', torch.Tensor(validationErr)})
 gnuplot.plotflush()
 ]]
-
-
---[[
---
--- SAVE
---
---]]
-torch.save("model", net)

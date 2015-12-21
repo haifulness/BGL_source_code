@@ -13,6 +13,12 @@
 --   + Short acting insulin (previous interval)
 --   + Food intake (previous interval)
 --   + Exercise (previous interval)
+--
+-- UPDATE Dec 19, 2015: 
+-- This file generates the 'best' combination of datasets (train, test,
+-- and validation) and neural net, which give the smallest validation error.
+-- After the best combination is identified, the datasets and the net will
+-- be saved to a text file for later uses.
 ]]
 
 require 'torch'
@@ -28,6 +34,7 @@ require("bgl_generateSets.lua")
 --   + 1 output
 --
 local SIZE_INPUT = 8
+local NUM_HIDDEN_LAYER = 1
 local SIZE_HIDDEN_LAYER = 100
 local SIZE_OUTPUT = 1
 
@@ -232,14 +239,14 @@ print("Average Validation Error: " .. sumError / EPOCH_TIMES)
 print("Test Error: " .. err)
 
 -- Plot
-gnuplot.pngfigure('graph/Dec 13/kok_night.png')
+gnuplot.pngfigure('graph/Dec 19/kok_night.png')
 gnuplot.title('Peter Kok\'s Choice For Night')
 gnuplot.ylabel('Glucose Level')
 gnuplot.plot({'Prediction', prediction}, {'Expectation', test_output})
 gnuplot.plotflush()
 
 
-gnuplot.pngfigure('graph/Dec 13/kok_night_error.png')
+gnuplot.pngfigure('graph/Dec 19/kok_night_error.png')
 gnuplot.title('Peter Kok\'s Choice For Night - Error')
 gnuplot.ylabel('Glucose Level')
 gnuplot.plot({'Train Error', torch.Tensor(trainErr)}, 
@@ -256,23 +263,23 @@ gnuplot.plotflush()
 local file = io.open("datasets.txt", "w")
 
 file:write(tostring(#train))
-file:write(";")
+file:write("\n")
 file:write(tostring(#test))
-file:write(";")
+file:write("\n")
 file:write(tostring(#validation))
-file:write(";")
+file:write("\n")
 
 for key, val in pairs(train) do
     file:write(tostring(val))
-    file:write(";")
+    file:write("\n")
 end
 for key, val in pairs(test) do
     file:write(tostring(val))
-    file:write(";")
+    file:write("\n")
 end
 for key, val in pairs(validation) do
     file:write(tostring(val))
-    file:write(";")
+    file:write("\n")
 end
 file:close()
 
@@ -280,10 +287,10 @@ file:close()
 file = io.open("net_night.txt", "w")
 for i = 1, SIZE_HIDDEN_LAYER do
     for j = 1, SIZE_INPUT do
-        local w = net:get(1).weight[i][j]
-        file:write(tostring(w))
-        file:write(";")
+        file:write(tostring(net:get(1).weight[i][j]))
+        file:write("\n")
     end
 end
+file:write(net:get(1).bias[1])
 file:close()
 
