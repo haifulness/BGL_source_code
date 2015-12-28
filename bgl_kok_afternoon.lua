@@ -179,13 +179,12 @@ local trainErr = {}
 local validationErr = {}
 local testErr = {}
 
+-- Train
 for i = 1, EPOCH_TIMES do
-    -- Train
     gradientUpgrade(net, train_input, train_output, criterion, learningRate)
-    prediction = net:forward(test_input)
-    trainErr[i] = criterion:forward(prediction, test_output)
 end
 
+-- Validate
 while not thresholdMet and epoch < EPOCH_TIMES do
     epoch = epoch + 1
     print('\nEpoch #' .. epoch)
@@ -208,10 +207,9 @@ end
 -- TEST
 --
 ]]
---for i = 1, #test do
     prediction = net:forward(test_input)
     local err = criterion:forward(prediction, test_output)
---end
+
 print("\nTraining Duration: " .. os.clock() - startTime .. "s")
 print("Smallest Validation Error: " .. minError)
 print("Average Validation Error: " .. sumError / EPOCH_TIMES)
