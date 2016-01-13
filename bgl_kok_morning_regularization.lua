@@ -426,8 +426,8 @@ gnuplot.plot({'Prediction', prediction}, {'Expectation', test_output})
 gnuplot.plotflush()
 ]]
 
-gnuplot.pngfigure('graph/Jan 10/all_intervals_error.png')
-gnuplot.title('All Intervals - Error')
+gnuplot.pngfigure('graph/Jan 13/kok_morning_error.png')
+gnuplot.title('Morning - Error')
 gnuplot.ylabel('Glucose Level')
 gnuplot.plot(
     {'Train Error', torch.Tensor(trainErr)}, 
@@ -441,4 +441,4 @@ gnuplot.plotflush()
 -- SAVE
 --
 --]]
-torch.save("graph/Jan 10/all_intervals.model", net)
+torch.save("graph/Jan 13/kok_morning.model", net)
