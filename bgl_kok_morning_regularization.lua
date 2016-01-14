@@ -418,27 +418,32 @@ end
 
 
 -- Plot
---[[
-gnuplot.pngfigure('graph/Jan 10/all_intervals.png')
-gnuplot.title('All Intervals')
-gnuplot.ylabel('Glucose Level')
-gnuplot.plot({'Prediction', prediction}, {'Expectation', test_output})
-gnuplot.plotflush()
-]]
 
-gnuplot.pngfigure('graph/Jan 13/kok_morning_error.png')
+-- only plot once for every 1000 epoches
+local train_selected, validation_selected, test_selected = {}, {}, {}
+
+for i = 1, EPOCH_TIMES do
+    if i % 1000 == 0 then
+        train_selected[math.ceil(i/1000)] = trainErr[i]
+        validation_selected[math.ceil(i/1000)] = validationErr[i]
+        test_selected[math.ceil(i/1000)] = testErr[i]
+    end
+end
+
+gnuplot.pngfigure('graph/Jan 13/error.png')
 gnuplot.title('Morning - Error')
 gnuplot.ylabel('Glucose Level')
+gnuplot.xlabel('Epoch (x1000)')
 gnuplot.plot(
-    {'Train Error', torch.Tensor(trainErr)}, 
-    {'Validation Error', torch.Tensor(validationErr)}, 
-    {'Test Error', torch.Tensor(testErr)})
+    {'Train Error', torch.Tensor(train_selected)}, 
+    {'Validation Error', torch.Tensor(validation_selected)}, 
+    {'Test Error', torch.Tensor(test_selected)})
 gnuplot.plotflush()
-
+--]]
 
 --[[
 --
 -- SAVE
 --
 --]]
-torch.save("graph/Jan 13/kok_morning.model", net)
+torch.save("graph/Jan 13/0.model", net)
