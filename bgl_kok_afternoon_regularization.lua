@@ -1,6 +1,6 @@
 --[[
 -- Author: Hai Tran
--- Date: Jan 13, 2016
+-- Date: Jan 17, 2016
 -- Filename: bgl_kok_afternoon_regularization.lua
 ]]
 
@@ -12,20 +12,20 @@ require("bgl_dataLoading.lua")
 require("bgl_generateSets.lua")
 
 
-local SIZE_INPUT = 10
+local SIZE_INPUT = 5
 local SIZE_HIDDEN_LAYER = 100
 local SIZE_OUTPUT = 1
 
-local VALIDATION_THRESHOLD = 1e-5
+local ACCEPT_THRESHOLD = 1e-5
 local LAMBDA = 1e-5
 local EPOCH_TIMES = 2*1e5
 local learningRate = 1e-5
-local epoch = 0
+local epoch = 1
 local threshold = 1
-local keepGoing = false
+local minThreshold = 100
 
 local net = nn.Sequential()
-criterion = nn.MSECriterion(1)
+criterion = nn.MSECriterion(true)
 module_01 = nn.Linear(SIZE_INPUT, SIZE_HIDDEN_LAYER)
 module_02 = nn.Linear(SIZE_HIDDEN_LAYER, SIZE_HIDDEN_LAYER)
 module_03 = nn.Linear(SIZE_HIDDEN_LAYER, SIZE_HIDDEN_LAYER)
@@ -124,109 +124,7 @@ NUM_DAY = #morning_date
 -- Build the data table
 local input = {}
 local output = {}
-for i = 1, NUM_DAY * 4 - 4 do
-    input[i] = {}
 
-    -- morning
-    if i % 4 == 1 then
-        local k = math.floor(i/4) + 1
-
-        -- BGL of the most recent interval
-        input[i][1]  = night_glucose[k]
-
-        -- Long acting insulin shots in the last 24 hours
-        input[i][2]  = morning_LAI[k]
-        input[i][3]  = afternoon_LAI[k]
-        input[i][4]  = evening_LAI[k]
-        input[i][5]  = night_LAI[k]
-
-        -- Everything else in the same interval
-        input[i][6]  = morning_SAI[k + 1]
-        input[i][7]  = morning_LAI[k + 1]
-        input[i][8]  = morning_food[k + 1]
-        input[i][9]  = morning_exercise[k + 1]
-        input[i][10] = morning_stress[k + 1]
-
-        -- Output
-        output[i]    = morning_glucose[k + 1]
-
-    end
-
-    -- afternoon
-    if i % 4 == 2 then
-        local k = math.floor(i/4) + 1
-
-        -- BGL of the most recent interval
-        input[i][1]  = morning_glucose[k + 1]
-
-        -- Long acting insulin shots in the last 24 hours
-        input[i][2]  = afternoon_LAI[k]
-        input[i][3]  = evening_LAI[k]
-        input[i][4]  = night_LAI[k]
-        input[i][5]  = morning_LAI[k + 1]
-        
-        -- Everything else in the same interval
-        input[i][6]  = afternoon_SAI[k + 1]
-        input[i][7]  = afternoon_LAI[k + 1]
-        input[i][8]  = afternoon_food[k + 1]
-        input[i][9]  = afternoon_exercise[k + 1]
-        input[i][10] = afternoon_stress[k + 1]
-
-        -- Output
-        output[i]    = afternoon_glucose[k + 1]
-        
-    end
-
-    -- evening
-    if i % 4 == 3 then
-        local k = math.floor(i/4) + 1
-
-        -- BGL of the most recent interval
-        input[i][1]  = afternoon_glucose[k + 1]
-
-        -- Long acting insulin shots in the last 24 hours
-        input[i][2]  = evening_LAI[k]
-        input[i][3]  = night_LAI[k]
-        input[i][4]  = morning_LAI[k + 1]
-        input[i][5]  = afternoon_LAI[k + 1]
-
-        -- Everything else in the same interval
-        input[i][6]  = evening_SAI[k + 1]
-        input[i][7]  = evening_LAI[k + 1]
-        input[i][8]  = evening_food[k + 1]
-        input[i][9]  = evening_exercise[k + 1]
-        input[i][10] = evening_stress[k + 1]
-
-        -- Output
-        output[i]    = evening_glucose[k + 1]
-
-    end
-
-    -- night
-    if i % 4 == 0 then
-        local k = math.floor(i/4)
-
-        -- BGL of the most recent interval
-        input[i][1]  = evening_glucose[k + 1]
-
-        -- Long acting insulin shots in the last 24 hours
-        input[i][2]  = night_LAI[k]
-        input[i][3]  = morning_LAI[k + 1]
-        input[i][4]  = afternoon_LAI[k + 1]
-        input[i][5]  = evening_LAI[k + 1]
-
-        -- Everything else in the same interval
-        input[i][6]  = night_SAI[k + 1]
-        input[i][7]  = night_LAI[k + 1]
-        input[i][8]  = night_food[k + 1]
-        input[i][9]  = night_exercise[k + 1]
-        input[i][10] = night_stress[k + 1]
-
-        -- Output
-        output[i]    = night_glucose[k + 1]
-
-    end
-end
 
 local train, test, validation = {}, {}, {}
 local trainErr, validationErr, testErr = {}, {}, {}
@@ -242,7 +140,8 @@ parameters, gradParameters = net:getParameters()
 
 function randomSets()
     -- Divide the dataset
-    train, test, validation = generateSets(NUM_DAY * 4 - 4, 50, 25, 25)
+    train, test, validation = generateSets(NUM_DAY - 1, 70, 20, 10)
+
     -- Input and output of the neural net
     train_input  = torch.Tensor(#train, SIZE_INPUT)
     train_output = torch.Tensor(#train)
@@ -252,25 +151,20 @@ function randomSets()
     validation_output = torch.Tensor(#validation)
 
     input_storage, output_storage, counter = {}, {}, 0
+
+
     -- Load data into input & output
     for key, val in pairs(train) do
         counter = counter + 1
         input_storage[counter] = {}
 
-        input_storage[counter][1]  = input[val][1]
-        input_storage[counter][2]  = input[val][2]
-        input_storage[counter][3]  = input[val][3]
-        input_storage[counter][4]  = input[val][4]
-        input_storage[counter][5]  = input[val][5]
-        input_storage[counter][6]  = input[val][6]
-        input_storage[counter][7]  = input[val][7]
-        input_storage[counter][8]  = input[val][8]
-        input_storage[counter][9]  = input[val][9]
-        input_storage[counter][10] = input[val][10]
-
-        output_storage[counter] = output[val]
+        input_storage[counter][1] = morning_glucose[val]
+        input_storage[counter][2] = afternoon_SAI[val]
+        input_storage[counter][3] = afternoon_food[val]
+        input_storage[counter][4] = afternoon_exercise[val]
+        input_storage[counter][5] = afternoon_stress[val]
+        output_storage[counter]   = afternoon_glucose[val]
     end
-
     -- Convert input to a Tensor
     train_input  = torch.Tensor(input_storage)
     train_output = torch.Tensor(output_storage)
@@ -282,23 +176,17 @@ function randomSets()
         counter = counter + 1
         input_storage[counter] = {}
 
-        input_storage[counter][1]  = input[val][1]
-        input_storage[counter][2]  = input[val][2]
-        input_storage[counter][3]  = input[val][3]
-        input_storage[counter][4]  = input[val][4]
-        input_storage[counter][5]  = input[val][5]
-        input_storage[counter][6]  = input[val][6]
-        input_storage[counter][7]  = input[val][7]
-        input_storage[counter][8]  = input[val][8]
-        input_storage[counter][9]  = input[val][9]
-        input_storage[counter][10] = input[val][10]
-
-        output_storage[counter] = output[val] 
+        input_storage[counter][1] = morning_glucose[val]
+        input_storage[counter][2] = afternoon_SAI[val]
+        input_storage[counter][3] = afternoon_food[val]
+        input_storage[counter][4] = afternoon_exercise[val]
+        input_storage[counter][5] = afternoon_stress[val]
+        output_storage[counter]   = afternoon_glucose[val]
     end
-
     -- Convert input to a Tensor
     test_input  = torch.Tensor(input_storage)
     test_output = torch.Tensor(output_storage)
+
 
     input_storage, output_storage, counter = {}, {}, 0
     -- Load data into input & output
@@ -306,34 +194,26 @@ function randomSets()
         counter = counter + 1
         input_storage[counter] = {}
 
-        input_storage[counter][1]  = input[val][1]
-        input_storage[counter][2]  = input[val][2]
-        input_storage[counter][3]  = input[val][3]
-        input_storage[counter][4]  = input[val][4]
-        input_storage[counter][5]  = input[val][5]
-        input_storage[counter][6]  = input[val][6]
-        input_storage[counter][7]  = input[val][7]
-        input_storage[counter][8]  = input[val][8]
-        input_storage[counter][9]  = input[val][9]
-        input_storage[counter][10] = input[val][10]
-
-        output_storage[counter] = output[val] 
+        input_storage[counter][1] = morning_glucose[val]
+        input_storage[counter][2] = afternoon_SAI[val]
+        input_storage[counter][3] = afternoon_food[val]
+        input_storage[counter][4] = afternoon_exercise[val]
+        input_storage[counter][5] = afternoon_stress[val]
+        output_storage[counter]   = afternoon_glucose[val]
     end
-
     -- Convert input to a Tensor
     validation_input  = torch.Tensor(input_storage)
     validation_output = torch.Tensor(output_storage)
 end
 
 
-
 -- train
 function trainNet()
     -- epoch tracker
-    epoch = epoch or 1
+    if epoch < 1 then epoch = 1 end
 
     -- do one epoch
-    print("Epoch # " .. epoch .. '')
+    print("\nEpoch # " .. epoch .. '')
 
     -- create closure to evaluate f(X) and df/dX
     local feval = function(x)
@@ -384,8 +264,6 @@ function trainNet()
         learningRateDecay = 5e-7
     }
     optim.sgd(feval, parameters, sgdState)
-
-    epoch = epoch + 1
 end
 
 
@@ -400,50 +278,85 @@ end
 --------------------------
 -- Main
 
--- timer
-local startTime = sys.clock()
+local pathPrefix = 'graph/Jan 17/afternoon_regularization/'
+local bestError, duration = {}, {}
+local resultFile = pathPrefix .. 'result.txt'
+local file, fileErr = io.open(resultFile, 'a+')
 
-while threshold > VALIDATION_THRESHOLD and epoch < EPOCH_TIMES do
-    randomSets()
-    trainNet()
-    
-    local prediction = net:forward(validation_input)
-    validationErr[epoch] = criterion:forward(prediction, validation_output)
-    print('Validation error = ' .. validationErr[epoch])
+if fileErr then print('File Open Error')
+else
+    for index = 1, 20 do
+        bestError[index] = 100
+        duration[index] = 0
 
-    testNet()
-    threshold = math.abs(validationErr[epoch] - testErr[epoch])
-end
+        -- reset
+        epoch = 1
+        threshold = 1
+        minThreshold = 100
+
+        -- timer
+        local startTime = sys.clock()
+
+        while threshold > ACCEPT_THRESHOLD and epoch < EPOCH_TIMES do
+            randomSets()
+            trainNet()
+            
+            local prediction = net:forward(validation_input)
+            validationErr[epoch] = criterion:forward(prediction, validation_output)
+            print('Validation error = ' .. validationErr[epoch])
+
+            testNet()
+            threshold = math.abs(trainErr[epoch] - testErr[epoch])
+            if threshold < minThreshold then
+                minThreshold = threshold
+                bestError[index] = testErr[epoch]
+            end
+
+            epoch = epoch + 1
+        end
+
+        duration[index] = sys.clock() - startTime
+        print('\nTraining Time: ' .. duration[index])
+        print('Best Test Error: ' .. bestError[index])
 
 
+        ----- Plot -----
 
--- Plot
+        -- only plot once for every 1000 epoches
+        local train_selected, validation_selected, test_selected = {}, {}, {}
 
--- only plot once for every 1000 epoches
-local train_selected, validation_selected, test_selected = {}, {}, {}
+        for i = 1, EPOCH_TIMES do
+            if i % 1e3 == 0 then
+                train_selected[math.ceil(i/1e3)] = trainErr[i]
+                validation_selected[math.ceil(i/1e3)] = validationErr[i]
+                test_selected[math.ceil(i/1e3)] = testErr[i]
+            end
+        end
 
-for i = 1, EPOCH_TIMES do
-    if i % 1000 == 0 then
-        train_selected[math.ceil(i/1000)] = trainErr[i]
-        validation_selected[math.ceil(i/1000)] = validationErr[i]
-        test_selected[math.ceil(i/1000)] = testErr[i]
+        
+        local graphFile = pathPrefix .. 'error_' .. index .. '.png'
+        gnuplot.pngfigure(graphFile)
+        gnuplot.title('All Intervals - Error')
+        gnuplot.ylabel('Glucose Level')
+        gnuplot.xlabel('Epoch (x1000)')
+        gnuplot.plot(
+            {'Train Error', torch.Tensor(train_selected)}, 
+            {'Validation Error', torch.Tensor(validation_selected)}, 
+            {'Test Error', torch.Tensor(test_selected)})
+        gnuplot.plotflush()
+
+
+        --[[
+        --
+        -- SAVE
+        --
+        --]]
+        torch.save(pathPrefix .. '' .. 'model_' .. index, net)
+        file:write('\n----- Run #' .. index .. ' -----\n')
+        file:write('Duration: ' .. duration[index] .. '\n')
+        file:write('Best Test Error: ' .. bestError[index] .. '\n')
+
     end
+
+    file:close()
 end
-
-gnuplot.pngfigure('graph/Jan 13/afternoon__error.png')
-gnuplot.title('Afternoon - Error')
-gnuplot.ylabel('Glucose Level')
-gnuplot.xlabel('Epoch (x1000)')
-gnuplot.plot(
-    {'Train Error', torch.Tensor(train_selected)}, 
-    {'Validation Error', torch.Tensor(validation_selected)}, 
-    {'Test Error', torch.Tensor(test_selected)})
-gnuplot.plotflush()
---]]
-
---[[
---
--- SAVE
---
---]]
-torch.save("graph/Jan 13/afternoon_.model", net)

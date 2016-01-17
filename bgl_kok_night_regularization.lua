@@ -1,7 +1,7 @@
 --[[
 -- Author: Hai Tran
--- Date: Jan 12, 2016
--- Filename: bgl_kok_morning_regularization.lua
+-- Date: Jan 17, 2016
+-- Filename: bgl_kok_night_regularization.lua
 ]]
 
 require 'torch'
@@ -158,16 +158,15 @@ function randomSets()
         counter = counter + 1
         input_storage[counter] = {}
 
-        input_storage[counter][1] = night_glucose[val - 1]
-        input_storage[counter][2] = morning_SAI[val]
-        input_storage[counter][3] = morning_food[val]
-        input_storage[counter][4] = morning_exercise[val]
-        input_storage[counter][5] = morning_stress[val]
-        input_storage[counter][6] = morning_LAI[val - 1]
-        input_storage[counter][7] = morning_exercise[val - 1] * morning_exercise[val - 1]
-        -- I assume the interval length is 6 hours
-        input_storage[counter][8] = 6.0
-        output_storage[counter]   = morning_glucose[val]
+        input_storage[counter][1] = afternoon_glucose[val]
+        input_storage[counter][2] = evening_SAI[val]
+        input_storage[counter][3] = evening_food[val]
+        input_storage[counter][4] = evening_exercise[val]
+        input_storage[counter][5] = morning_glucose[val]
+        input_storage[counter][6] = afternoon_SAI[val]
+        input_storage[counter][7] = afternoon_food[val]
+        input_storage[counter][8] = afternoon_exercise[val]
+        output_storage[counter]   = evening_glucose[val]
     end
     -- Convert input to a Tensor
     train_input  = torch.Tensor(input_storage)
@@ -180,16 +179,15 @@ function randomSets()
         counter = counter + 1
         input_storage[counter] = {}
 
-        input_storage[counter][1] = night_glucose[val - 1]
-        input_storage[counter][2] = morning_SAI[val]
-        input_storage[counter][3] = morning_food[val]
-        input_storage[counter][4] = morning_exercise[val]
-        input_storage[counter][5] = morning_stress[val]
-        input_storage[counter][6] = morning_LAI[val - 1]
-        input_storage[counter][7] = morning_exercise[val - 1] * morning_exercise[val - 1]
-        -- I assume the interval length is 6 hours
-        input_storage[counter][8] = 6.0
-        output_storage[counter]   = morning_glucose[val]
+        input_storage[counter][1] = afternoon_glucose[val]
+        input_storage[counter][2] = evening_SAI[val]
+        input_storage[counter][3] = evening_food[val]
+        input_storage[counter][4] = evening_exercise[val]
+        input_storage[counter][5] = morning_glucose[val]
+        input_storage[counter][6] = afternoon_SAI[val]
+        input_storage[counter][7] = afternoon_food[val]
+        input_storage[counter][8] = afternoon_exercise[val]
+        output_storage[counter]   = evening_glucose[val]
     end
     -- Convert input to a Tensor
     test_input  = torch.Tensor(input_storage)
@@ -202,16 +200,15 @@ function randomSets()
         counter = counter + 1
         input_storage[counter] = {}
 
-        input_storage[counter][1] = night_glucose[val - 1]
-        input_storage[counter][2] = morning_SAI[val]
-        input_storage[counter][3] = morning_food[val]
-        input_storage[counter][4] = morning_exercise[val]
-        input_storage[counter][5] = morning_stress[val]
-        input_storage[counter][6] = morning_LAI[val - 1]
-        input_storage[counter][7] = morning_exercise[val - 1] * morning_exercise[val - 1]
-        -- I assume the interval length is 6 hours
-        input_storage[counter][8] = 6.0
-        output_storage[counter]   = morning_glucose[val]
+        input_storage[counter][1] = afternoon_glucose[val]
+        input_storage[counter][2] = evening_SAI[val]
+        input_storage[counter][3] = evening_food[val]
+        input_storage[counter][4] = evening_exercise[val]
+        input_storage[counter][5] = morning_glucose[val]
+        input_storage[counter][6] = afternoon_SAI[val]
+        input_storage[counter][7] = afternoon_food[val]
+        input_storage[counter][8] = afternoon_exercise[val]
+        output_storage[counter]   = evening_glucose[val]
     end
     -- Convert input to a Tensor
     validation_input  = torch.Tensor(input_storage)
@@ -290,7 +287,7 @@ end
 --------------------------
 -- Main
 
-local pathPrefix = 'graph/Jan 17/morning_regularization/'
+local pathPrefix = 'graph/Jan 17/night_regularization/'
 local bestError, duration = {}, {}
 local resultFile = pathPrefix .. 'result.txt'
 local file, fileErr = io.open(resultFile, 'a+')

@@ -18,11 +18,11 @@ local SIZE_OUTPUT = 1
 
 local ACCEPT_THRESHOLD = 1e-5
 local LAMBDA = 1e-5
-local EPOCH_TIMES = 2*1e3
+local EPOCH_TIMES = 2*1e5
 local learningRate = 1e-5
 local epoch = 1
 local threshold = 1
-local minThreshold = 1
+local minThreshold = 100
 
 local net = nn.Sequential()
 criterion = nn.MSECriterion(true)
@@ -400,15 +400,19 @@ end
 
 local pathPrefix = 'graph/Jan 17/all_intervals_regularization/'
 local bestError, duration = {}, {}
-local resultFile = pathPrefix .. 'all_intervals_regularization_result.txt'
+local resultFile = pathPrefix .. 'result.txt'
 local file, fileErr = io.open(resultFile, 'a+')
 
 if fileErr then print('File Open Error')
 else
-	for index = 1, 2 do
+	for index = 1, 20 do
+        bestError[index] = 100
+        duration[index] = 0
+
+        -- reset
 		epoch = 1
-		bestError[index] = 0
-		duration[index] = 0
+        threshold = 1
+        minThreshold = 100
 
 		-- timer
 		local startTime = sys.clock()
@@ -467,7 +471,7 @@ else
 		-- SAVE
 		--
 		--]]
-		torch.save('graph/Jan 17/all_intervals_regularization/0.model', net)
+		torch.save(pathPrefix .. '' .. 'model_' .. index, net)
 		file:write('\n----- Run #' .. index .. ' -----\n')
 		file:write('Duration: ' .. duration[index] .. '\n')
 		file:write('Best Test Error: ' .. bestError[index] .. '\n')
