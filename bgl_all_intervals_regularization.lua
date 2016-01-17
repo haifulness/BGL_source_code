@@ -8,8 +8,8 @@ require 'torch'
 require 'nn'
 require 'gnuplot'
 require 'optim'
-require("bgl_dataLoading.lua")
-require("bgl_generateSets.lua")
+require('bgl_dataLoading.lua')
+require('bgl_generateSets.lua')
 
 
 local SIZE_INPUT = 10
@@ -18,12 +18,11 @@ local SIZE_OUTPUT = 1
 
 local ACCEPT_THRESHOLD = 1e-5
 local LAMBDA = 1e-5
-local EPOCH_TIMES = 2*1e5
+local EPOCH_TIMES = 2*1e3
 local learningRate = 1e-5
 local epoch = 1
 local threshold = 1
 local minThreshold = 1
-local bestError = 0
 
 local net = nn.Sequential()
 criterion = nn.MSECriterion(true)
@@ -46,12 +45,12 @@ net:add(module_06)
 -- parse command-line options
 --
 local opt = lapp[[
-   -s,--save          (default "logs")      subdirectory to save logs
-   -n,--network       (default "")          reload pretrained network
-   -m,--model         (default "convnet")   type of model tor train: convnet | mlp | linear
+   -s,--save          (default 'logs')      subdirectory to save logs
+   -n,--network       (default '')          reload pretrained network
+   -m,--model         (default 'convnet')   type of model tor train: convnet | mlp | linear
    -f,--full                                use the full dataset
    -p,--plot                                plot while training
-   -o,--optimization  (default "SGD")       optimization: SGD | LBFGS 
+   -o,--optimization  (default 'SGD')       optimization: SGD | LBFGS 
    -r,--learningRate  (default 0.05)        learning rate, for SGD only
    -b,--batchSize     (default 10)          batch size
    -m,--momentum      (default 0)           momentum, for SGD only
@@ -76,7 +75,7 @@ torch.setnumthreads(opt.threads)
 
 
 -- Load data
-local path = "../Datasets/Peter Kok - Real data for predicting blood glucose levels of diabetics/data.txt"
+local path = '../Datasets/Peter Kok - Real data for predicting blood glucose levels of diabetics/data.txt'
 local 
     morning_date, 
     morning_time, 
@@ -334,7 +333,7 @@ function trainNet()
     if epoch < 1 then epoch = 1 end
 
     -- do one epoch
-    print("\nEpoch # " .. epoch .. '')
+    print('\nEpoch # ' .. epoch .. '')
 
     -- create closure to evaluate f(X) and df/dX
     local feval = function(x)
@@ -393,63 +392,87 @@ end
 function testNet()
     local prediction = net:forward(test_input)
     testErr[epoch] = criterion:forward(prediction, test_output)
-    print("Test Error = " .. testErr[epoch])
+    print('Test Error = ' .. testErr[epoch])
 end
 
 --------------------------
 -- Main
 
--- timer
-local startTime = sys.clock()
+local pathPrefix = 'graph/Jan 17/all_intervals_regularization/'
+local bestError, duration = {}, {}
+local resultFile = pathPrefix .. 'all_intervals_regularization_result.txt'
+local file, fileErr = io.open(resultFile, 'a+')
 
-while threshold > ACCEPT_THRESHOLD and epoch < EPOCH_TIMES do
-    randomSets()
-    trainNet()
-    
-    local prediction = net:forward(validation_input)
-    validationErr[epoch] = criterion:forward(prediction, validation_output)
-    print('Validation error = ' .. validationErr[epoch])
+if fileErr then print('File Open Error')
+else
+	for index = 1, 2 do
+		epoch = 1
+		bestError[index] = 0
+		duration[index] = 0
 
-    testNet()
-    threshold = math.abs(trainErr[epoch] - testErr[epoch])
-    if threshold < minThreshold then
-        minThreshold = threshold
-        bestError = testErr[epoch]
-    end
+		-- timer
+		local startTime = sys.clock()
 
-    epoch = epoch + 1
+		while threshold > ACCEPT_THRESHOLD and epoch < EPOCH_TIMES do
+		    randomSets()
+		    trainNet()
+		    
+		    local prediction = net:forward(validation_input)
+		    validationErr[epoch] = criterion:forward(prediction, validation_output)
+		    print('Validation error = ' .. validationErr[epoch])
+
+		    testNet()
+		    threshold = math.abs(trainErr[epoch] - testErr[epoch])
+		    if threshold < minThreshold then
+		        minThreshold = threshold
+		        bestError[index] = testErr[epoch]
+		    end
+
+		    epoch = epoch + 1
+		end
+
+		duration[index] = sys.clock() - startTime
+		print('\nTraining Time: ' .. duration[index])
+		print('Best Test Error: ' .. bestError[index])
+
+
+		----- Plot -----
+
+		-- only plot once for every 1000 epoches
+		local train_selected, validation_selected, test_selected = {}, {}, {}
+
+		for i = 1, EPOCH_TIMES do
+		    if i % 1e3 == 0 then
+		        train_selected[math.ceil(i/1e3)] = trainErr[i]
+		        validation_selected[math.ceil(i/1e3)] = validationErr[i]
+		        test_selected[math.ceil(i/1e3)] = testErr[i]
+		    end
+		end
+
+		
+		local graphFile = pathPrefix .. 'error_' .. index .. '.png'
+		gnuplot.pngfigure(graphFile)
+		gnuplot.title('All Intervals - Error')
+		gnuplot.ylabel('Glucose Level')
+		gnuplot.xlabel('Epoch (x1000)')
+		gnuplot.plot(
+		    {'Train Error', torch.Tensor(train_selected)}, 
+		    {'Validation Error', torch.Tensor(validation_selected)}, 
+		    {'Test Error', torch.Tensor(test_selected)})
+		gnuplot.plotflush()
+
+
+		--[[
+		--
+		-- SAVE
+		--
+		--]]
+		torch.save('graph/Jan 17/all_intervals_regularization/0.model', net)
+		file:write('\n----- Run #' .. index .. ' -----\n')
+		file:write('Duration: ' .. duration[index] .. '\n')
+		file:write('Best Test Error: ' .. bestError[index] .. '\n')
+
+	end
+
+	file:close()
 end
-
-print('\nTraining Time: ' .. sys.clock() - startTime)
-print('Best Error: ' .. bestError)
-
--- Plot
-
--- only plot once for every 1000 epoches
-local train_selected, validation_selected, test_selected = {}, {}, {}
-
-for i = 1, EPOCH_TIMES do
-    if i % 1e3 == 0 then
-        train_selected[math.ceil(i/1e3)] = trainErr[i]
-        validation_selected[math.ceil(i/1e3)] = validationErr[i]
-        test_selected[math.ceil(i/1e3)] = testErr[i]
-    end
-end
-
-gnuplot.pngfigure('graph/Jan 13/all_intervals_regularization/error.png')
-gnuplot.title('All Intervals - Error')
-gnuplot.ylabel('Glucose Level')
-gnuplot.xlabel('Epoch (x1000)')
-gnuplot.plot(
-    {'Train Error', torch.Tensor(train_selected)}, 
-    {'Validation Error', torch.Tensor(validation_selected)}, 
-    {'Test Error', torch.Tensor(test_selected)})
-gnuplot.plotflush()
-
-
---[[
---
--- SAVE
---
---]]
-torch.save("graph/Jan 13/all_intervals_regularization/0.model", net)

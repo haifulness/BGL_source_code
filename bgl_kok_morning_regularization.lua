@@ -328,7 +328,7 @@ for i = 1, EPOCH_TIMES do
     end
 end
 
-gnuplot.pngfigure('graph/Jan 13/morning_regularization/error.png')
+gnuplot.pngfigure('graph/Jan 17/morning_regularization/error.png')
 gnuplot.title('Morning - Error')
 gnuplot.ylabel('Glucose Level')
 gnuplot.xlabel('Epoch (x1000)')
@@ -344,4 +344,4 @@ gnuplot.plotflush()
 -- SAVE
 --
 --]]
-torch.save("graph/Jan 13/morning_regularization/0.model", net)
+torch.save("graph/Jan 17/morning_regularization/0.model", net)
