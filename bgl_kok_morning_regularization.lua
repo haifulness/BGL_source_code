@@ -16,13 +16,14 @@ local SIZE_INPUT = 8
 local SIZE_HIDDEN_LAYER = 100
 local SIZE_OUTPUT = 1
 
-local VALIDATION_THRESHOLD = 1e-5
-local LAMBDA = 1e-7
+local ACCEPT_THRESHOLD = 1e-5
+local LAMBDA = 1e-5
 local EPOCH_TIMES = 2*1e5
-local learningRate = 1e-7
-local epoch = 0
-local threshold = 1e-3
-local keepGoing = false
+local learningRate = 1e-5
+local epoch = 1
+local threshold = 1
+local minThreshold = 1
+local bestError = 0
 
 local net = nn.Sequential()
 criterion = nn.MSECriterion(true)
@@ -222,10 +223,10 @@ end
 -- train
 function trainNet()
     -- epoch tracker
-    epoch = epoch or 1
+    if epoch < 1 then epoch = 1 end
 
     -- do one epoch
-    print("Epoch # " .. epoch .. '')
+    print("\nEpoch # " .. epoch .. '')
 
     -- create closure to evaluate f(X) and df/dX
     local feval = function(x)
@@ -276,8 +277,6 @@ function trainNet()
         learningRateDecay = 5e-7
     }
     optim.sgd(feval, parameters, sgdState)
-
-    epoch = epoch + 1
 end
 
 
@@ -295,7 +294,7 @@ end
 -- timer
 local startTime = sys.clock()
 
-while threshold > VALIDATION_THRESHOLD and epoch < EPOCH_TIMES do
+while threshold > ACCEPT_THRESHOLD and epoch < EPOCH_TIMES do
     randomSets()
     trainNet()
     
@@ -304,11 +303,17 @@ while threshold > VALIDATION_THRESHOLD and epoch < EPOCH_TIMES do
     print('Validation error = ' .. validationErr[epoch])
 
     testNet()
-    threshold = math.abs(validationErr[epoch] - testErr[epoch])
+    threshold = math.abs(trainErr[epoch] - testErr[epoch])
+    if threshold < minThreshold then
+        minThreshold = threshold
+        bestError = testErr[epoch]
+    end
+
+    epoch = epoch + 1
 end
 
 print('\nTraining Time: ' .. sys.clock() - startTime)
-
+print('Best Error: ' .. bestError)
 
 -- Plot
 
@@ -316,10 +321,10 @@ print('\nTraining Time: ' .. sys.clock() - startTime)
 local train_selected, validation_selected, test_selected = {}, {}, {}
 
 for i = 1, EPOCH_TIMES do
-    if i % 1e4 == 0 then
-        train_selected[math.ceil(i/1e4)] = trainErr[i]
-        validation_selected[math.ceil(i/1e4)] = validationErr[i]
-        test_selected[math.ceil(i/1e4)] = testErr[i]
+    if i % 1e3 == 0 then
+        train_selected[math.ceil(i/1e3)] = trainErr[i]
+        validation_selected[math.ceil(i/1e3)] = validationErr[i]
+        test_selected[math.ceil(i/1e3)] = testErr[i]
     end
 end
 

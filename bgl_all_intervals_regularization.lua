@@ -16,16 +16,17 @@ local SIZE_INPUT = 10
 local SIZE_HIDDEN_LAYER = 100
 local SIZE_OUTPUT = 1
 
-local VALIDATION_THRESHOLD = 1e-5
+local ACCEPT_THRESHOLD = 1e-5
 local LAMBDA = 1e-5
 local EPOCH_TIMES = 2*1e5
 local learningRate = 1e-5
-local epoch = 0
+local epoch = 1
 local threshold = 1
-local keepGoing = false
+local minThreshold = 1
+local bestError = 0
 
 local net = nn.Sequential()
-criterion = nn.MSECriterion(1)
+criterion = nn.MSECriterion(true)
 module_01 = nn.Linear(SIZE_INPUT, SIZE_HIDDEN_LAYER)
 module_02 = nn.Linear(SIZE_HIDDEN_LAYER, SIZE_HIDDEN_LAYER)
 module_03 = nn.Linear(SIZE_HIDDEN_LAYER, SIZE_HIDDEN_LAYER)
@@ -242,7 +243,7 @@ parameters, gradParameters = net:getParameters()
 
 function randomSets()
     -- Divide the dataset
-    train, test, validation = generateSets(NUM_DAY * 4 - 4, 50, 25, 25)
+    train, test, validation = generateSets(NUM_DAY * 4 - 4, 70, 20, 10)
     -- Input and output of the neural net
     train_input  = torch.Tensor(#train, SIZE_INPUT)
     train_output = torch.Tensor(#train)
@@ -330,10 +331,10 @@ end
 -- train
 function trainNet()
     -- epoch tracker
-    epoch = epoch or 1
+    if epoch < 1 then epoch = 1 end
 
     -- do one epoch
-    print("Epoch # " .. epoch .. '')
+    print("\nEpoch # " .. epoch .. '')
 
     -- create closure to evaluate f(X) and df/dX
     local feval = function(x)
@@ -384,8 +385,6 @@ function trainNet()
         learningRateDecay = 5e-7
     }
     optim.sgd(feval, parameters, sgdState)
-
-    epoch = epoch + 1
 end
 
 
@@ -403,7 +402,7 @@ end
 -- timer
 local startTime = sys.clock()
 
-while threshold > VALIDATION_THRESHOLD and epoch < EPOCH_TIMES do
+while threshold > ACCEPT_THRESHOLD and epoch < EPOCH_TIMES do
     randomSets()
     trainNet()
     
@@ -412,27 +411,39 @@ while threshold > VALIDATION_THRESHOLD and epoch < EPOCH_TIMES do
     print('Validation error = ' .. validationErr[epoch])
 
     testNet()
-    threshold = math.abs(validationErr[epoch] - testErr[epoch])
+    threshold = math.abs(trainErr[epoch] - testErr[epoch])
+    if threshold < minThreshold then
+        minThreshold = threshold
+        bestError = testErr[epoch]
+    end
+
+    epoch = epoch + 1
 end
 
-
+print('\nTraining Time: ' .. sys.clock() - startTime)
+print('Best Error: ' .. bestError)
 
 -- Plot
---[[
-gnuplot.pngfigure('graph/Jan 10/all_intervals.png')
-gnuplot.title('All Intervals')
-gnuplot.ylabel('Glucose Level')
-gnuplot.plot({'Prediction', prediction}, {'Expectation', test_output})
-gnuplot.plotflush()
-]]
 
-gnuplot.pngfigure('graph/Jan 10/all_intervals_error.png')
+-- only plot once for every 1000 epoches
+local train_selected, validation_selected, test_selected = {}, {}, {}
+
+for i = 1, EPOCH_TIMES do
+    if i % 1e3 == 0 then
+        train_selected[math.ceil(i/1e3)] = trainErr[i]
+        validation_selected[math.ceil(i/1e3)] = validationErr[i]
+        test_selected[math.ceil(i/1e3)] = testErr[i]
+    end
+end
+
+gnuplot.pngfigure('graph/Jan 13/all_intervals_regularization/error.png')
 gnuplot.title('All Intervals - Error')
 gnuplot.ylabel('Glucose Level')
+gnuplot.xlabel('Epoch (x1000)')
 gnuplot.plot(
-    {'Train Error', torch.Tensor(trainErr)}, 
-    {'Validation Error', torch.Tensor(validationErr)}, 
-    {'Test Error', torch.Tensor(testErr)})
+    {'Train Error', torch.Tensor(train_selected)}, 
+    {'Validation Error', torch.Tensor(validation_selected)}, 
+    {'Test Error', torch.Tensor(test_selected)})
 gnuplot.plotflush()
 
 
@@ -441,4 +452,4 @@ gnuplot.plotflush()
 -- SAVE
 --
 --]]
-torch.save("graph/Jan 10/all_intervals.model", net)
+torch.save("graph/Jan 13/all_intervals_regularization/0.model", net)
