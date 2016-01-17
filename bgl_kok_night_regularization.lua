@@ -158,15 +158,15 @@ function randomSets()
         counter = counter + 1
         input_storage[counter] = {}
 
-        input_storage[counter][1] = afternoon_glucose[val]
-        input_storage[counter][2] = evening_SAI[val]
-        input_storage[counter][3] = evening_food[val]
-        input_storage[counter][4] = evening_exercise[val]
-        input_storage[counter][5] = morning_glucose[val]
-        input_storage[counter][6] = afternoon_SAI[val]
-        input_storage[counter][7] = afternoon_food[val]
-        input_storage[counter][8] = afternoon_exercise[val]
-        output_storage[counter]   = evening_glucose[val]
+        input_storage[counter][1] = evening_glucose[val]
+        input_storage[counter][2] = night_SAI[val]
+        input_storage[counter][3] = night_food[val]
+        input_storage[counter][4] = night_exercise[val]
+        input_storage[counter][5] = night_stress[val]
+        input_storage[counter][6] = night_LAI[val - 1]
+        input_storage[counter][7] = night_exercise[val - 1] * night_exercise[val - 1]
+        input_storage[counter][8] = 6  -- assume the interval length is 6 hours
+        output_storage[counter]   = night_glucose[val]
     end
     -- Convert input to a Tensor
     train_input  = torch.Tensor(input_storage)
@@ -179,15 +179,15 @@ function randomSets()
         counter = counter + 1
         input_storage[counter] = {}
 
-        input_storage[counter][1] = afternoon_glucose[val]
-        input_storage[counter][2] = evening_SAI[val]
-        input_storage[counter][3] = evening_food[val]
-        input_storage[counter][4] = evening_exercise[val]
-        input_storage[counter][5] = morning_glucose[val]
-        input_storage[counter][6] = afternoon_SAI[val]
-        input_storage[counter][7] = afternoon_food[val]
-        input_storage[counter][8] = afternoon_exercise[val]
-        output_storage[counter]   = evening_glucose[val]
+        input_storage[counter][1] = evening_glucose[val]
+        input_storage[counter][2] = night_SAI[val]
+        input_storage[counter][3] = night_food[val]
+        input_storage[counter][4] = night_exercise[val]
+        input_storage[counter][5] = night_stress[val]
+        input_storage[counter][6] = night_LAI[val - 1]
+        input_storage[counter][7] = night_exercise[val - 1] * night_exercise[val - 1]
+        input_storage[counter][8] = 6  -- assume the interval length is 6 hours
+        output_storage[counter]   = night_glucose[val]
     end
     -- Convert input to a Tensor
     test_input  = torch.Tensor(input_storage)
@@ -200,15 +200,15 @@ function randomSets()
         counter = counter + 1
         input_storage[counter] = {}
 
-        input_storage[counter][1] = afternoon_glucose[val]
-        input_storage[counter][2] = evening_SAI[val]
-        input_storage[counter][3] = evening_food[val]
-        input_storage[counter][4] = evening_exercise[val]
-        input_storage[counter][5] = morning_glucose[val]
-        input_storage[counter][6] = afternoon_SAI[val]
-        input_storage[counter][7] = afternoon_food[val]
-        input_storage[counter][8] = afternoon_exercise[val]
-        output_storage[counter]   = evening_glucose[val]
+        input_storage[counter][1] = evening_glucose[val]
+        input_storage[counter][2] = night_SAI[val]
+        input_storage[counter][3] = night_food[val]
+        input_storage[counter][4] = night_exercise[val]
+        input_storage[counter][5] = night_stress[val]
+        input_storage[counter][6] = night_LAI[val - 1]
+        input_storage[counter][7] = night_exercise[val - 1] * night_exercise[val - 1]
+        input_storage[counter][8] = 6  -- assume the interval length is 6 hours
+        output_storage[counter]   = night_glucose[val]
     end
     -- Convert input to a Tensor
     validation_input  = torch.Tensor(input_storage)
