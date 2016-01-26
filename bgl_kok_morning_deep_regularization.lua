@@ -18,7 +18,7 @@ local SIZE_OUTPUT = 1
 
 local ACCEPT_THRESHOLD = 1e-5
 local LAMBDA = 1e-5
-local EPOCH_TIMES = 2*1e5
+local EPOCH_TIMES = 1*1e6
 local learningRate = 1e-5
 local epoch = 1
 local threshold = 1
@@ -33,10 +33,10 @@ module_04 = nn.Linear(SIZE_HIDDEN_LAYER, SIZE_HIDDEN_LAYER)
 module_05 = nn.Linear(SIZE_HIDDEN_LAYER, SIZE_HIDDEN_LAYER)
 module_06 = nn.Linear(SIZE_HIDDEN_LAYER, SIZE_OUTPUT)
 net:add(module_01)
---net:add(module_02)
---net:add(module_03)
---net:add(module_04)
---net:add(module_05)
+net:add(module_02)
+net:add(module_03)
+net:add(module_04)
+net:add(module_05)
 net:add(nn.Tanh())
 net:add(module_06)
 
@@ -290,14 +290,16 @@ end
 --------------------------
 -- Main
 
-local pathPrefix = 'graph/Jan 20/morning_regularization_200/'
+local pathPrefix = 'graph/Jan 25/morning/'
 local bestError, duration = {}, {}
 local resultFile = pathPrefix .. 'result.txt'
-local file, fileErr = io.open(resultFile, 'a+')
 
-if fileErr then print('File Open Error')
-else
-    for index = 1, 10 do
+for index = 1, 10 do
+    local file, fileErr = io.open(resultFile, 'a+')
+
+    if fileErr then print('File Open Error')
+    else
+    
         bestError[index] = 100
         duration[index] = 0
 
@@ -338,17 +340,17 @@ else
         local train_selected, validation_selected, test_selected = {}, {}, {}
 
         for i = 1, EPOCH_TIMES do
-            if i % 1e3 == 0 then
-                train_selected[math.ceil(i/1e3)] = trainErr[i]
-                validation_selected[math.ceil(i/1e3)] = validationErr[i]
-                test_selected[math.ceil(i/1e3)] = testErr[i]
+            if i % 1e4 == 0 then
+                train_selected[math.ceil(i/1e4)] = trainErr[i]
+                validation_selected[math.ceil(i/1e4)] = validationErr[i]
+                test_selected[math.ceil(i/1e4)] = testErr[i]
             end
         end
 
         
         local graphFile = pathPrefix .. 'error_' .. index .. '.png'
         gnuplot.pngfigure(graphFile)
-        gnuplot.title('All Intervals - Error')
+        gnuplot.title('Morning Interval - Error')
         gnuplot.ylabel('Glucose Level')
         gnuplot.xlabel('Epoch (x1000)')
         gnuplot.plot(
