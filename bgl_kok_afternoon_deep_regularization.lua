@@ -17,9 +17,9 @@ local SIZE_HIDDEN_LAYER = 100
 local SIZE_OUTPUT = 1
 
 local ACCEPT_THRESHOLD = 1e-5
-local LAMBDA = 1e-5
-local EPOCH_TIMES = 1*1e6
-local learningRate = 1e-5
+local LAMBDA = 1e-6
+local EPOCH_TIMES = 1*1e7
+local learningRate = 1e-6
 local epoch = 1
 local threshold = 1
 local minThreshold = 100
@@ -272,7 +272,7 @@ end
 function testNet()
     local prediction = net:forward(test_input)
     testErr[epoch] = criterion:forward(prediction, test_output)
-    print("Test Error = " .. testErr[epoch])
+    --print("Test Error = " .. testErr[epoch])
 end
 
 --------------------------
@@ -284,6 +284,7 @@ local resultFile = pathPrefix .. 'result.txt'
 
 for index = 1, 10 do
     local file, fileErr = io.open(resultFile, 'a+')
+    print('Run #' .. index .. '')
 
     if fileErr then print('File Open Error')
     else
@@ -305,7 +306,7 @@ for index = 1, 10 do
             
             local prediction = net:forward(validation_input)
             validationErr[epoch] = criterion:forward(prediction, validation_output)
-            print('Validation error = ' .. validationErr[epoch])
+            --print('Validation error = ' .. validationErr[epoch])
 
             testNet()
             threshold = math.abs(trainErr[epoch] - testErr[epoch])
@@ -318,8 +319,6 @@ for index = 1, 10 do
         end
 
         duration[index] = sys.clock() - startTime
-        print('\nTraining Time: ' .. duration[index])
-        print('Best Test Error: ' .. bestError[index])
 
 
         ----- Plot -----
@@ -340,7 +339,7 @@ for index = 1, 10 do
         gnuplot.pngfigure(graphFile)
         gnuplot.title('Afternoon Interval - Error')
         gnuplot.ylabel('Glucose Level')
-        gnuplot.xlabel('Epoch (x1000)')
+        gnuplot.xlabel('Epoch (x10000)')
         gnuplot.plot(
             {'Train Error', torch.Tensor(train_selected)}, 
             --{'Validation Error', torch.Tensor(validation_selected)}, 
@@ -361,4 +360,6 @@ for index = 1, 10 do
     end
 
     file:close()
+    print('Training Time: ' .. duration[index])
+    print('Best Test Error: ' .. bestError[index])
 end
