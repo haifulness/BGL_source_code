@@ -35,8 +35,8 @@ module_06 = nn.Linear(SIZE_HIDDEN_LAYER, SIZE_OUTPUT)
 net:add(module_01)
 net:add(module_02)
 net:add(module_03)
-net:add(module_04)
-net:add(module_05)
+--net:add(module_04)
+--net:add(module_05)
 net:add(nn.Tanh())
 net:add(module_06)
 
@@ -213,7 +213,7 @@ function trainNet()
     if epoch < 1 then epoch = 1 end
 
     -- do one epoch
-    print("\nEpoch # " .. epoch .. '')
+    --print("\nEpoch # " .. epoch .. '')
 
     -- create closure to evaluate f(X) and df/dX
     local feval = function(x)
@@ -232,7 +232,7 @@ function trainNet()
         local outputs = net:forward(train_input)
         local f = criterion:forward(outputs, train_output)
         
-        print('Training error = ' .. f)
+        --print('Training error = ' .. f)
         trainErr[epoch] = f
 
         -- estimate df/dW
