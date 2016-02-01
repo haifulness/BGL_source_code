@@ -290,7 +290,7 @@ end
 --------------------------
 -- Main
 
-local pathPrefix = 'graph/Jan 25/morning/'
+local pathPrefix = 'graph/Jan 25/5 hidden layers/morning/'
 local bestError, duration = {}, {}
 local resultFile = pathPrefix .. 'result.txt'
 

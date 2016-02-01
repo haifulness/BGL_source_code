@@ -1,0 +1,40 @@
+
+----- Run #1 -----
+Duration: 6820.5648210049
+Best Test Error: 4.1504578034869
+
+----- Run #2 -----
+Duration: 2260.3927099705
+Best Test Error: 4.0192178010735
+
+----- Run #3 -----
+Duration: 2861.1096761227
+Best Test Error: 3.7469564767628
+
+----- Run #4 -----
+Duration: 8211.3836050034
+Best Test Error: 1.7531096641477
+
+----- Run #5 -----
+Duration: 1842.9872441292
+Best Test Error: 2.8770778690276
+
+----- Run #6 -----
+Duration: 2943.6798520088
+Best Test Error: 2.2520084253377
+
+----- Run #7 -----
+Duration: 1051.0088200569
+Best Test Error: 1.6472874169997
+
+----- Run #8 -----
+Duration: 6228.2204270363
+Best Test Error: 2.4970300251028
+
+----- Run #9 -----
+Duration: 8979.6270699501
+Best Test Error: 2.123187260605
+
+----- Run #10 -----
+Duration: 3859.8974320889
+Best Test Error: 1.9982097196596

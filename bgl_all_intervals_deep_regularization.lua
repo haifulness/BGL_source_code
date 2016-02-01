@@ -35,8 +35,8 @@ module_06 = nn.Linear(SIZE_HIDDEN_LAYER, SIZE_OUTPUT)
 net:add(module_01)
 net:add(module_02)
 net:add(module_03)
---net:add(module_04)
---net:add(module_05)
+net:add(module_04)
+net:add(module_05)
 net:add(nn.Tanh())
 net:add(module_06)
 
@@ -398,7 +398,7 @@ end
 --------------------------
 -- Main
 
-local pathPrefix = 'graph/Jan 25/all/'
+local pathPrefix = 'graph/Jan 25/5 hidden layers/all/'
 local bestError, duration = {}, {}
 local resultFile = pathPrefix .. 'result.txt'
 
