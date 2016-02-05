@@ -8,15 +8,15 @@ require 'torch'
 require 'nn'
 require 'gnuplot'
 require 'optim'
-require('bgl_dataLoading.lua')
-require('bgl_generateSets.lua')
+require('../../bgl_dataLoading.lua')
+require('../../bgl_generateSets.lua')
 
 
 local SIZE_INPUT = 10
 local SIZE_HIDDEN_LAYER = 100
 local SIZE_OUTPUT = 1
 
-local ACCEPT_THRESHOLD = 1e-5
+local ACCEPT_THRESHOLD = 1e-6
 local LAMBDA = 1e-6
 local EPOCH_TIMES = 1*1e7
 local learningRate = 1e-6
@@ -71,7 +71,7 @@ torch.setnumthreads(opt.threads)
 
 
 -- Load data
-local path = '../Datasets/Peter Kok - Real data for predicting blood glucose levels of diabetics/data.txt'
+local path = '../../../Datasets/Peter Kok - Real data for predicting blood glucose levels of diabetics/data.txt'
 local 
     morning_date, 
     morning_time, 
@@ -394,7 +394,7 @@ end
 --------------------------
 -- Main
 
-local pathPrefix = 'graph/Jan 25/5 hidden layers/all/'
+local pathPrefix = '100/'
 local bestError, duration = {}, {}
 local resultFile = pathPrefix .. 'result.txt'
 
