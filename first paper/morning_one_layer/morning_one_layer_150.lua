@@ -8,8 +8,8 @@ require 'torch'
 require 'nn'
 require 'gnuplot'
 require 'optim'
-require("bgl_dataLoading.lua")
-require("bgl_generateSets.lua")
+require("../../bgl_dataLoading.lua")
+require("../../bgl_generateSets.lua")
 
 
 local SIZE_INPUT = 8
@@ -71,7 +71,7 @@ torch.setnumthreads(opt.threads)
 
 
 -- Load data
-local path = "../Datasets/Peter Kok - Real data for predicting blood glucose levels of diabetics/data.txt"
+local path = "../../../Datasets/Peter Kok - Real data for predicting blood glucose levels of diabetics/data.txt"
 local 
     morning_date, 
     morning_time, 

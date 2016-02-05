@@ -1,0 +1,8 @@
+
+----- Run #1 -----
+Duration: 39036.621370077
+Best Test Error: 1.9722123758066
+
+----- Run #2 -----
+Duration: 99023.040367126
+Best Test Error: 1.6295028853722
