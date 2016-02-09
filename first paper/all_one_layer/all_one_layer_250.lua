@@ -13,7 +13,7 @@ require('../../bgl_generateSets.lua')
 
 
 local SIZE_INPUT = 10
-local SIZE_HIDDEN_LAYER = 150
+local SIZE_HIDDEN_LAYER = 250
 local SIZE_OUTPUT = 1
 
 local ACCEPT_THRESHOLD = 1e-5
@@ -394,7 +394,7 @@ end
 --------------------------
 -- Main
 
-local pathPrefix = '150/'
+local pathPrefix = '250/'
 local bestError, duration = {}, {}
 local resultFile = pathPrefix .. 'result.txt'
 
