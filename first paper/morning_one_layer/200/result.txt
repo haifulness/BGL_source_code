@@ -2,3 +2,7 @@
 ----- Run #1 -----
 Duration: 40660.547959089
 Best Test Error: 2.9268803399201
+
+----- Run #2 -----
+Duration: 254944.78338695
+Best Test Error: 1.2004721904663

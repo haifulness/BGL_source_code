@@ -6,3 +6,11 @@ Best Test Error: 1.8839596401077
 ----- Run #2 -----
 Duration: 159823.69377804
 Best Test Error: 1.2026282013477
+
+----- Run #3 -----
+Duration: 281735.836128
+Best Test Error: 1.4467718136348
+
+----- Run #4 -----
+Duration: 4756.3724620342
+Best Test Error: 2.0937222970502
