@@ -10,3 +10,7 @@ Best Test Error: 2.3823601736697
 ----- Run #3 -----
 Duration: 15771.656213999
 Best Test Error: 2.4912049486904
+
+----- Run #4 -----
+Duration: 625533.38835406
+Best Test Error: 2.2631449346203
