@@ -8,12 +8,12 @@ require 'torch'
 require 'nn'
 require 'gnuplot'
 require 'optim'
-require('bgl_dataLoading.lua')
-require('bgl_generateSets.lua')
+require('../../bgl_dataLoading.lua')
+require('../../bgl_generateSets.lua')
 
 
 local SIZE_INPUT = 10
-local SIZE_HIDDEN_LAYER = 100
+local SIZE_HIDDEN_LAYER = 200
 local SIZE_OUTPUT = 1
 
 local ACCEPT_THRESHOLD = 1e-5
@@ -75,7 +75,7 @@ torch.setnumthreads(opt.threads)
 
 
 -- Load data
-local path = '../Datasets/Peter Kok - Real data for predicting blood glucose levels of diabetics/data.txt'
+local path = '../../../Datasets/Peter Kok - Real data for predicting blood glucose levels of diabetics/data.txt'
 local 
     morning_date, 
     morning_time, 
@@ -332,9 +332,6 @@ function trainNet()
     -- epoch tracker
     if epoch < 1 then epoch = 1 end
 
-    -- do one epoch
-    --print('\nEpoch # ' .. epoch .. '')
-
     -- create closure to evaluate f(X) and df/dX
     local feval = function(x)
         -- just in case:
@@ -352,7 +349,6 @@ function trainNet()
         local outputs = net:forward(train_input)
         local f = criterion:forward(outputs, train_output)
         
-        --print('Training error = ' .. f)
         trainErr[epoch] = f
 
         -- estimate df/dW
@@ -398,7 +394,7 @@ end
 --------------------------
 -- Main
 
-local pathPrefix = 'graph/Jan 25/5 hidden layers/all/'
+local pathPrefix = '200/'
 local bestError, duration = {}, {}
 local resultFile = pathPrefix .. 'result.txt'
 
@@ -426,7 +422,6 @@ for index = 1, 10 do
 		    
 		    local prediction = net:forward(validation_input)
 		    validationErr[epoch] = criterion:forward(prediction, validation_output)
-		    --print('Validation error = ' .. validationErr[epoch])
 
 		    testNet()
 		    threshold = math.abs(trainErr[epoch] - testErr[epoch])
@@ -447,10 +442,10 @@ for index = 1, 10 do
 		local train_selected, validation_selected, test_selected = {}, {}, {}
 
 		for i = 1, EPOCH_TIMES do
-		    if i % 1e4 == 0 then
-		        train_selected[math.ceil(i/1e4)] = trainErr[i]
-		        validation_selected[math.ceil(i/1e4)] = validationErr[i]
-		        test_selected[math.ceil(i/1e4)] = testErr[i]
+		    if i % 1e3 == 0 then
+		        train_selected[math.ceil(i/1e3)] = trainErr[i]
+		        validation_selected[math.ceil(i/1e3)] = validationErr[i]
+		        test_selected[math.ceil(i/1e3)] = testErr[i]
 		    end
 		end
 
@@ -462,7 +457,6 @@ for index = 1, 10 do
 		gnuplot.xlabel('Epoch (x10000)')
 		gnuplot.plot(
 		    {'Train Error', torch.Tensor(train_selected)}, 
-		    --{'Validation Error', torch.Tensor(validation_selected)}, 
 		    {'Test Error', torch.Tensor(test_selected)})
 		gnuplot.plotflush()
 
