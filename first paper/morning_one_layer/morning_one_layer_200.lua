@@ -289,7 +289,7 @@ local pathPrefix = '200/'
 local bestError, duration = {}, {}
 local resultFile = pathPrefix .. 'result.txt'
 
-for index = 1, 10 do
+for index = 3, 10 do
     local file, fileErr = io.open(resultFile, 'a+')
     print('Run #' .. index .. '')
 
