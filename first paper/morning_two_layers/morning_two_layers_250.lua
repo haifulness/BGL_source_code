@@ -8,12 +8,12 @@ require 'torch'
 require 'nn'
 require 'gnuplot'
 require 'optim'
-require("bgl_dataLoading.lua")
-require("bgl_generateSets.lua")
+require("../../bgl_dataLoading.lua")
+require("../../bgl_generateSets.lua")
 
 
 local SIZE_INPUT = 8
-local SIZE_HIDDEN_LAYER = 100
+local SIZE_HIDDEN_LAYER = 250
 local SIZE_OUTPUT = 1
 
 local ACCEPT_THRESHOLD = 1e-5
@@ -34,9 +34,9 @@ module_05 = nn.Linear(SIZE_HIDDEN_LAYER, SIZE_HIDDEN_LAYER)
 module_06 = nn.Linear(SIZE_HIDDEN_LAYER, SIZE_OUTPUT)
 net:add(module_01)
 net:add(module_02)
-net:add(module_03)
-net:add(module_04)
-net:add(module_05)
+--net:add(module_03)
+--net:add(module_04)
+--net:add(module_05)
 net:add(nn.Tanh())
 net:add(module_06)
 
@@ -75,7 +75,7 @@ torch.setnumthreads(opt.threads)
 
 
 -- Load data
-local path = "../Datasets/Peter Kok - Real data for predicting blood glucose levels of diabetics/data.txt"
+local path = "../../../Datasets/Peter Kok - Real data for predicting blood glucose levels of diabetics/data.txt"
 local 
     morning_date, 
     morning_time, 
@@ -290,7 +290,7 @@ end
 --------------------------
 -- Main
 
-local pathPrefix = 'graph/Jan 25/5 hidden layers/morning/'
+local pathPrefix = '250/'
 local bestError, duration = {}, {}
 local resultFile = pathPrefix .. 'result.txt'
 
