@@ -80,7 +80,7 @@ for num_hidden_layers = 3, 3 do
 
 		local train_err, test_err = {}, {}
 
-		for fold = NUM_FOLDS, NUM_FOLDS do
+		for fold = 1, NUM_FOLDS do
 			-- Build model
 			local model = buildModel(INPUT_SIZE, num_hidden_nodes, 1, num_hidden_layers, "sigmoid")
 			-- Create train & test datasets
@@ -119,7 +119,9 @@ for num_hidden_layers = 3, 3 do
 					train_err[fold] = train(model, train_input, train_output)
 				end
 
-				print(epoch, train_err[fold])
+				if epoch % 1e3 == 0 then
+					print(fold, epoch, train_err[fold])
+				end
 			end
 
 			test_err[fold] = test(model, test_input, test_output)
@@ -129,7 +131,7 @@ for num_hidden_layers = 3, 3 do
 		end
 
 		-- Calculate the avg error
-		--[[
+		--[
 		local total_err = 0
 		for fold = 1, NUM_FOLDS do
 			total_err = total_err + test_err[fold]
