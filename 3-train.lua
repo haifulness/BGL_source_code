@@ -8,7 +8,7 @@
 --------------------------------------------------------------------------------
 -- Train a model
 --
-function train(model, train_input, train_output)
+function train(model, criterion, train_input, train_output)
 	model: training()
 	local w, grads = model:getParameters()
 	local total_err = 0
@@ -58,7 +58,7 @@ end
 --------------------------------------------------------------------------------
 -- Test a model
 --
-function test(model, test_input, test_output)
+function test(model, criterion, test_input, test_output)
 	model:evaluate()
 	local total_err = 0
 

@@ -33,10 +33,10 @@ function buildModel(input_size, hidden_size, output_size, num_hidden_layers, act
 		model:add(nn.Tanh())
 	end
 
-	return model
+	-- Criterion
+	local criterion = nn.MSECriterion(false)
+
+	return model, criterion
 end
 
---------------------------------------------------------------------------------
--- Criterion
---
-criterion = nn.MSECriterion(false)
+
