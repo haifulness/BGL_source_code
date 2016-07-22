@@ -37,7 +37,7 @@ optimState = {
 	learningRate = 1e-3
 	--, momentum = 1e-4
 	--, weightDecay = 1e-4
-	, learningRateDecay = 1e-4
+	, learningRateDecay = 1e-6
 }
 
 torch.manualSeed(os.clock())
@@ -57,8 +57,10 @@ load_data("data/data.txt")
 local data, target = gen_data()
 
 -- Build models and train
-for num_hidden_layers = 1, 5 do
-	for num_hidden_nodes = 1, 12 do
+-- Number of hidden layers and hidden nodes are considered based on
+-- number of input (23) and number of samples (305)
+for num_hidden_layers = 2, 6 do
+	for num_hidden_nodes = 10, 15 do
 		for turn = 1, 5 do
 			print("\nNum of hidden layers: ", num_hidden_layers, "\nNum of hidden nodes: ", num_hidden_nodes, "\nTurn: ", turn)
 

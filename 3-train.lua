@@ -9,43 +9,39 @@
 -- Train a model
 --
 function train(model, criterion, train_input, train_output)
-	model: training()
+	model:training()
 	local w, grads = model:getParameters()
 	local total_err = 0
 
-	----------------------------------------------------------------------------
-	-- Define eval closure
-	--
-	local feval = function(w_new)
-		-- Reset data
-		if w ~= w_new then w:copy(w_new) end
-		-- Reset gradients
-		grads:zero()
+	for size = 1, train_input:size(1) do
 
-		idx = (idx or 0) + 1
-		if idx > train_input:size(1) then idx = 1 end
+		-- Define eval closure
+		local feval = function(w_new)
+			-- Reset data
+			if w ~= w_new then w:copy(w_new) end
+			-- Reset gradients
+			grads:zero()
 
-		local input = train_input[idx]
-		local output = torch.Tensor(1)
-		output[1] = train_output[idx]
+			idx = (idx or 0) + 1
+			if idx > train_input:size(1) then idx = 1 end
 
-		local prediction = model:forward(input)
-		local err = criterion:forward(prediction, output)
-		local df_dw = criterion:backward(prediction, output)
-		model:backward(input, df_dw)
+			local input = train_input[idx]
+			local output = torch.Tensor(1)
+			output[1] = train_output[idx]
 
-		total_err = total_err + err
+			local prediction = model:forward(input)
+			local err = criterion:forward(prediction, output)
+			local df_dw = criterion:backward(prediction, output)
+			model:backward(input, df_dw)
 
-		-- Return 
-		return  err, grads
-	end
+			total_err = total_err + err
 
-	----------------------------------------------------------------------------
-	-- Train
-	--
+			-- Return 
+			return  err, grads
+		end
 
-	for j = 1, train_input:size(1) do
-		w, fs = optim.sgd(feval, w, optimState)
+		-- Train
+		optim.sgd(feval, w, optimState)
 	end
 
 	-- Report average error on epoch
@@ -71,6 +67,8 @@ function test(model, criterion, test_input, test_output)
 		local err = criterion:forward(prediction, output)
 		total_err = total_err + err
 	end
+
+	model:training()
 
 	return total_err/test_input:size(1)
 end
