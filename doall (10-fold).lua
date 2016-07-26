@@ -15,9 +15,12 @@ require("CustomLinear.lua")
 --
 INPUT_SIZE = 23
 DATASET_SIZE = 305
-TEST_SIZE = 60
-NUM_FOLDS = 7
-SUBSET_SIZE = 35
+
+-- k-fold cross-validation
+NUM_FOLDS = 10
+
+-- Size of each subset
+SUB_SIZE = math.floor(DATASET_SIZE / NUM_FOLDS)
 
 
 -------------------------------------------------------------------------------
@@ -38,6 +41,7 @@ optimState = {
 }
 
 torch.manualSeed(os.clock())
+--torch.setnumthreads(params.threads)
 
 
 -------------------------------------------------------------------------------
@@ -58,9 +62,9 @@ dofile "3-train.lua"
 -- number of input (23) and number of samples (305)
 --   Layers: 2 -> 5
 --   Nodes: 20 -> 25
-for num_hidden_layers = 2, 2 do
-	for num_hidden_nodes = 20, 20 do
-		for turn = 1, 1 do
+for num_hidden_layers = 2, 5 do
+	for num_hidden_nodes = 20, 25 do
+		for turn = 1, 5 do
 			print("\nNum of hidden layers: ", num_hidden_layers, "\nNum of hidden nodes: ", num_hidden_nodes, "\nTurn: ", turn)
 
 			local log, logErr = io.open("log.txt", "a+")
@@ -71,37 +75,88 @@ for num_hidden_layers = 2, 2 do
 
 			local timer = torch.Timer()
 
-			-- Shuffle dataset
+			-- Prepare data
 			local indices = torch.randperm(DATASET_SIZE)
-			local train_indices, validate_indices, test_indices = {}, {}, {}
-
-			-- Leave out the last indices for test set
-			for i = DATASET_SIZE, DATASET_SIZE - TEST_SIZE + 1 do
-				table.add(test_indices, indices[i])
-			end
-
-			-- For train and validate, use k-fold cross-validation
-			local indices_train = torch.randperm(DATASET_SIZE - TEST_SIZE)
 			local idx = {}
-			-- Assign data into subsets
-			for fold = 1, NUM_FOLDS do
-				idx[fold] = {}
-				for i = 1, SUBSET_SIZE do
-					table.add(idx[fold], 
-						indices[ indices_train[ (fold-1)*SUBSET_SIZE+i ] ])
+
+			-- Assign indices into subsets
+			for i = 1, NUM_FOLDS do
+				idx[i] = {}
+				for j = 1, SUB_SIZE do
+					idx[i][j] = indices[(i-1) * SUB_SIZE + j]
 				end
 			end
 
-			-- Train & Validate
+			-- The last subset receives the remains
+			for j = 1, DATASET_SIZE % NUM_FOLDS do
+				idx[NUM_FOLDS][SUB_SIZE + j] = indices[DATASET_SIZE - j + 1]
+			end
+
+			local train_err, test_err = {}, {}
+			local train_plot, test_plot = {}, {}
+
 			for fold = 1, NUM_FOLDS do
+				train_plot[fold], test_plot[fold] = {}, {}
+
+				-- Build model
+				model, criterion = buildModel(INPUT_SIZE, num_hidden_nodes, 1, num_hidden_layers, "sigmoid")
+				-- Create train & test datasets
+				local train_input = torch.Tensor(DATASET_SIZE - #idx[fold], INPUT_SIZE)
+				local train_output = torch.Tensor(DATASET_SIZE - #idx[fold])
+				local test_input = torch.Tensor(#idx[fold], INPUT_SIZE)
+				local test_output = torch.Tensor(#idx[fold])
+
+				-- Pull data into the train and test sets
 				for i = 1, NUM_FOLDS do
-					if i ~= fold then
-						-- Train
+					local train_counter = 1
+
+					if i == fold then
+						for j = 1, #idx[i] do
+							test_input[j] = data[idx[i][j]]
+							test_output[j] = target[idx[i][j]]
+						end
 					else
-						-- Validate
+						for j = 1, #idx[i] do
+							for k = 1, INPUT_SIZE do
+								train_input[train_counter][k] = data[idx[i][j]][k]
+							end
+							train_output[train_counter] = target[idx[i][j]]
+							train_counter = train_counter + 1
+						end
 					end
 				end
+
+				-- Train
+				for epoch = 1, params.max_epoch do
+					train_err[fold] = train(train_input, train_output)
+					test_err[fold] = test(test_input, test_output)
+
+					-- Early Stopping
+					
+
+					if train_err[fold] ~= train_err[fold] then
+						break
+					end
+					
+					table.insert(train_plot[fold], train_err[fold])
+					table.insert(test_plot[fold], test_err[fold])
+				end			
 			end
+
+			-- Calculate the avg error
+			--[
+			local total_test_err = 0
+			local not_nan_counter = 0
+			for fold = 1, NUM_FOLDS do
+				if test_err[fold] ~= test_err[fold] then
+					-- do nothing
+				else
+					total_test_err = total_test_err + test_err[fold]
+					not_nan_counter = not_nan_counter + 1
+				end
+			end
+			
+			print("Average Test Error ", total_test_err/not_nan_counter)
 
 			-- Log
 			--

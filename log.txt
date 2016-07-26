@@ -1,0 +1,123 @@
+
+-------------------------------------------
+
+Num of hidden layers: 2
+Num of hidden nodes: 10
+Turn: 1
+Train & Test Error: 
+0.86572322748261, 9.5891283250819
+nan, nan
+nan, nan
+nan, nan
+0.80557694803199, 5.8154310121299
+nan, nan
+nan, nan
+nan, nan
+nan, nan
+nan, nan
+Average Test Error: 1.5404559337212
+Time: 151.90659022331
+-------------------------------------------
+
+Num of hidden layers: 2
+Num of hidden nodes: 10
+Turn: 1
+Train & Test Error: 
+0.44432932018069, 13.784478632563
+nan, nan
+nan, nan
+nan, nan
+nan, nan
+nan, nan
+nan, nan
+0.26078579742014, 13.280918937426
+0.89256214219807, 7.2561137779337
+0.22376196939517, 7.9307860358785
+Average Test Error: 4.2252297383801
+Time: 1593.2671129704
+-------------------------------------------
+
+Num of hidden layers: 2
+Num of hidden nodes: 10
+Turn: 1
+Train & Test Error: 
+12.304100619853, 102.42629213861
+-------------------------------------------
+
+Num of hidden layers: 2
+Num of hidden nodes: 10
+Turn: 1
+Train & Test Error: 
+12.304100619853, 102.42629213861
+-------------------------------------------
+
+Num of hidden layers: 2
+Num of hidden nodes: 10
+Turn: 1
+Train & Test Error: 
+12.304100619853, 102.42629213861
+11.669992737813, 83.920455535964
+nan, nan
+nan, nan
+12.679621966717, 94.16676626398
+nan, nan
+12.722795218755, 97.371894190074
+nan, nan
+13.392557391604, 104.01364887269
+nan, nan
+Average Test Error: 48.189905700131
+Time: 1.0687618255615
+-------------------------------------------
+
+Num of hidden layers: 2
+Num of hidden nodes: 10
+Turn: 1
+Train & Test Error: 
+11.22345721916, 86.197888560492
+nan, nan
+10.884960037304, 62.093293940067
+nan, nan
+11.061863290101, 75.449225961706
+nan, nan
+nan, nan
+11.053015647425, 64.489721460357
+nan, nan
+nan, nan
+Average Test Error: 28.823012992262
+Time: 7.7744338512421
+-------------------------------------------
+
+Num of hidden layers: 2
+Num of hidden nodes: 10
+Turn: 1
+Train & Test Error: 
+9.4690502389014, 69.491156615607
+nan, nan
+nan, nan
+8.2872048876496, 51.689028181937
+nan, nan
+nan, nan
+5.9542098460359, 40.912184675193
+nan, nan
+nan, nan
+6.6252035506362, 54.506006022174
+Average Test Error: 21.659837549491
+Time: 62.50638794899
+-------------------------------------------
+
+Num of hidden layers: 5
+Num of hidden nodes: 25
+Turn: 1
+Train & Test Error: 
+11.171246906823, 83.764311867652
+11.171394483775, 72.423145796542
+11.171456226597, 62.680534466242
+nan, nan
+11.170876816054, 73.017008042284
+11.171092549575, 64.616741920834
+11.171068802727, 75.974680366258
+11.171097291719, 62.329259329967
+11.171115353826, 77.718475255388
+nan, nan
+Average Test Error: 71.565519630646
+Time: 268.9263150692

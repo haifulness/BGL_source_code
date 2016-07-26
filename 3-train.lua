@@ -6,14 +6,14 @@
 
 
 --------------------------------------------------------------------------------
--- Train a model
+-- Train
 --
-function train(model, criterion, train_input, train_output)
+function train(train_input, train_output)
 	model:training()
 	local w, grads = model:getParameters()
-	local total_err = 0
+	local trainErr = 0
 
-	for size = 1, train_input:size(1) do
+	for idx = 1, train_input:size(1) do
 
 		-- Define eval closure
 		local feval = function(w_new)
@@ -21,9 +21,6 @@ function train(model, criterion, train_input, train_output)
 			if w ~= w_new then w:copy(w_new) end
 			-- Reset gradients
 			grads:zero()
-
-			idx = (idx or 0) + 1
-			if idx > train_input:size(1) then idx = 1 end
 
 			local input = train_input[idx]
 			local output = torch.Tensor(1)
@@ -34,9 +31,8 @@ function train(model, criterion, train_input, train_output)
 			local df_dw = criterion:backward(prediction, output)
 			model:backward(input, df_dw)
 
-			total_err = total_err + err
+			trainErr = trainErr + err
 
-			-- Return 
 			return  err, grads
 		end
 
@@ -44,17 +40,53 @@ function train(model, criterion, train_input, train_output)
 		optim.sgd(feval, w, optimState)
 	end
 
-	-- Report average error on epoch
-	total_err = total_err / train_input:size(1)
-
-	return total_err
+	return trainErr/train_input:size(1)
 end
 
 
 --------------------------------------------------------------------------------
--- Test a model
+-- Validate
 --
-function test(model, criterion, test_input, test_output)
+function validate(validate_input, validate_output)
+	model:training()
+	local w, grads = model:getParameters()
+	local validateErr = 0
+
+	for idx = 1, validate_input:size(1) do
+
+		-- Define eval closure
+		local feval = function(w_new)
+			-- Reset data
+			if w ~= w_new then w:copy(w_new) end
+			-- Reset gradients
+			grads:zero()
+
+			local input = validate_input[idx]
+			local output = torch.Tensor(1)
+			output[1] = validate_output[idx]
+
+			local prediction = model:forward(input)
+			local err = criterion:forward(prediction, output)
+			local df_dw = criterion:backward(prediction, output)
+			model:backward(input, df_dw)
+
+			validateErr = validateErr + err
+
+			return  err, grads
+		end
+
+		-- Train
+		optim.sgd(feval, w, optimState)
+	end
+
+	return validateErr/validate_input:size(1)
+end
+
+
+--------------------------------------------------------------------------------
+-- Test
+--
+function test(test_input, test_output)
 	model:evaluate()
 	local total_err = 0
 
